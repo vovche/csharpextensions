@@ -282,6 +282,9 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
                     assignment: `${Array(tabSize * 3).join(' ')} ${(prefixWithThis ? 'this.' : '')}${name} = ${selectedName};\r\n`
                 };
                 break;
+            default:
+                //TODO: Show error?
+                return null;
         }
 
         const constructorBodyStart = this.findConstructorBodyStart(document, position);
