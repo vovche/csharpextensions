@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.3.2] - 2020-03-10
+### Changed
+- Updated package for current vscode
+
 ## [1.3.0] - 2017-03-01
 ### Added
 - Ability to create property and read-only property from constructor
