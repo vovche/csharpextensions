@@ -1,4 +1,4 @@
-# ***** *PROJECT NO LONGER UNDER DEVELOPMENT* *****
+# Customized version of https://github.com/jchannon/csharpextensions, -> https://github.com/KreativJos/csharpextensions
 
 # C# Extensions
 

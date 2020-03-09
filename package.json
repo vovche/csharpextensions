@@ -2,14 +2,14 @@
     "name": "csharpextensions",
     "displayName": "C# Extensions",
     "description": "C# IDE Extensions for VSCode",
-    "author": "Jonathan Channon",
+    "author": "KreativJos",
     "license": "SEE LICENSE IN license.txt",
     "version": "1.3.0",
-    "publisher": "jchannon",
+    "publisher": "kreativ-software",
     "engines": {
         "vscode": "^1.5.0"
     },
-    "repository": "https://github.com/jchannon/csharpextensions",
+    "repository": "https://github.com/kreativjos/csharpextensions",
     "icon": "logo.png",
     "categories": [
         "Languages",
