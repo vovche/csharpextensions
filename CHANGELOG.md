@@ -1,5 +1,9 @@
-# Change Log
+# Changelog
 All notable changes to this project will be documented in this file.
+
+## [1.3.3] - 2020-04-09
+### Fixed
+- Namespace becomes a dot - Fixed by [brunohenriquepj](https://github.com/brunohenriquepj)
 
 ## [1.3.2] - 2020-03-10
 ### Changed
