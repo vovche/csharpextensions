@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.3.4] - 2020-04-20
+### Added
+- Creating new enum command - Added by [fakenmc](https://github.com/fakenmc)
+
 ## [1.3.3] - 2020-04-09
 ### Fixed
 - Namespace becomes a dot - Fixed by [brunohenriquepj](https://github.com/brunohenriquepj)
