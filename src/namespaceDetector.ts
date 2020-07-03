@@ -59,7 +59,8 @@ export default class NamespaceDetector {
     }
 
     private fromFilepath(): string {
-        const namespaceWithLeadingDot = this.calculateFullNamespace("", workspace.rootPath)
+        const rootPath = workspace.workspaceFolders && workspace.workspaceFolders.length ? workspace.workspaceFolders[0].uri.fsPath : '';
+        const namespaceWithLeadingDot = this.calculateFullNamespace('', rootPath)
         return namespaceWithLeadingDot.slice(1);
     }
 
