@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.3.5] - 2020-07-03
+### Added
+- RootNamespace detection - Added by [PoLaKoSz](https://github.com/PoLaKoSz)
+
 ## [1.3.4] - 2020-04-20
 ### Added
 - Creating new enum command - Added by [fakenmc](https://github.com/fakenmc)
