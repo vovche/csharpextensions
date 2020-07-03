@@ -2,3 +2,4 @@ out
 node_modules
 *.vsix
 /yarn-error.log
+ovsx.key
