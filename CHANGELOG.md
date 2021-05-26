@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2021-05-26
+### Fixed
+- Using async / await
+- Prevent extension search for .tmpl file popup - Added by [PoLaKoSz](https://github.com/PoLaKoSz)
+- Fixed namespace if solution is in a subfolder
+- Updated vscode api to 1.56.0
+
 ## [1.3.6] - 2020-07-15
 ### Fixed
 - crash when creating new file in CodeSpaces - Added by [danyhoron](https://github.com/danyhoron)
