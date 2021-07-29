@@ -62,7 +62,8 @@
             "explorer/context": [
                 {
                     "submenu": "csharpextensions.new",
-                    "group": "navigation@-1"
+                    "group": "navigation@-1",
+                    "when": "explorerResourceIsFolder"
                 }
             ]
         },
