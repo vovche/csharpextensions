@@ -5,7 +5,7 @@ import { promises as fs } from 'fs';
 import CodeActionProvider from './codeActionProvider';
 import NamespaceDetector from './namespaceDetector';
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void {
     const documentSelector: vscode.DocumentSelector = {
         language: 'csharp',
         scheme: 'file'
@@ -29,11 +29,11 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 async function promptAndSave(args: any, templatetype: string) {
-    if (args == null) {
+    if (!args) {
         args = {
             _fsPath: vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length
                 ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined
-        }
+        };
     }
 
     const incomingpath: string = args._fsPath || args.fsPath || args.path;
@@ -51,6 +51,7 @@ async function promptAndSave(args: any, templatetype: string) {
             await fs.access(newfilepath);
 
             vscode.window.showErrorMessage(`File already exists: ${EOL}${newfilepath}`);
+
             return;
         } catch { }
 
@@ -63,7 +64,7 @@ async function promptAndSave(args: any, templatetype: string) {
         console.error('Error on input', errOnInput);
 
         vscode.window.showErrorMessage('Error on input. See extensions log for more info');
-    };
+    }
 }
 
 function correctExtension(filename: string) {
@@ -81,6 +82,7 @@ async function openTemplateAndSaveNewFile(type: string, namespace: string, filen
 
     if (!extension) {
         vscode.window.showErrorMessage('Weird, but the extension you are currently using could not be found');
+
         return;
     }
 
@@ -99,10 +101,10 @@ async function openTemplateAndSaveNewFile(type: string, namespace: string, filen
 
         await fs.writeFile(originalfilepath, text);
 
-        const openedDoc = await vscode.workspace.openTextDocument(originalfilepath)
+        const openedDoc = await vscode.workspace.openTextDocument(originalfilepath);
         const editor = await vscode.window.showTextDocument(openedDoc);
 
-        if (cursorPosition != null) {
+        if (cursorPosition) {
             const newselection = new vscode.Selection(cursorPosition, cursorPosition);
 
             editor.selection = newselection;
@@ -129,4 +131,4 @@ function findCursorInTemplate(text: string): vscode.Position | null {
     return new vscode.Position(lineNum, charNum);
 }
 
-export function deactivate() { }
+export function deactivate(): void { /* Nothing to do here */ }
