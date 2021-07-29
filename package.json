@@ -24,33 +24,45 @@
     ],
     "main": "./out/src/extension",
     "contributes": {
+        "submenus": [
+            {
+                "id": "csharpextensions.new",
+                "label": "New C#"
+            }
+        ],
         "commands": [
             {
                 "command": "csharpextensions.createClass",
-                "title": "New C# Class"
+                "title": "Class"
             },
             {
                 "command": "csharpextensions.createInterface",
-                "title": "New C# Interface"
+                "title": "Interface"
             },
             {
                 "command": "csharpextensions.createEnum",
-                "title": "New C# Enum"
+                "title": "Enum"
             }
         ],
         "menus": {
-            "explorer/context": [
+            "csharpextensions.new": [
                 {
-                    "group": "navigation@-1",
-                    "command": "csharpextensions.createClass"
+                    "command": "csharpextensions.createClass",
+                    "group": "navigation@0"
                 },
                 {
-                    "group": "navigation@-1",
+                    "group": "navigation@1",
                     "command": "csharpextensions.createInterface"
                 },
                 {
-                    "group": "navigation@-1",
+                    "group": "navigation@2",
                     "command": "csharpextensions.createEnum"
+                }
+            ],
+            "explorer/context": [
+                {
+                    "submenu": "csharpextensions.new",
+                    "group": "navigation@-1"
                 }
             ]
         },
