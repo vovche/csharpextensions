@@ -2,7 +2,7 @@ import { Uri, workspace } from 'vscode';
 import * as path from 'path';
 import CsprojReader from './csprojReader';
 import ProjectJsonReader from './projectJsonReader';
-const findupglob = require('find-up-glob');
+import * as findupglob from 'find-up-glob';
 
 export default class NamespaceDetector {
     private readonly filePath: string;
@@ -46,7 +46,7 @@ export default class NamespaceDetector {
 
     private async fromProjectJson(): Promise<string | undefined> {
         const jsonFiles: string[] = await findupglob('project.json', { cwd: path.dirname(this.filePath) });
-        
+
         if (jsonFiles === null || jsonFiles.length < 1) {
             return undefined;
         }
@@ -86,13 +86,14 @@ export default class NamespaceDetector {
 
     private async fromFilepath(): Promise<string> {
         const rootPath = await this.getRootPath();
-        const namespaceWithLeadingDot = this.calculateFullNamespace('', rootPath)
+        const namespaceWithLeadingDot = this.calculateFullNamespace('', rootPath);
 
         return namespaceWithLeadingDot.slice(1);
     }
 
     private async read(file: Uri): Promise<string> {
         const document = await workspace.openTextDocument(file);
+        
         return document.getText();
     }
 
@@ -101,8 +102,9 @@ export default class NamespaceDetector {
         const rootDirSegments: string[] = rootDirectory.split(path.sep);
         let fullNamespace = rootNamespace;
         for (let index = rootDirSegments.length; index < filePathSegments.length; index++) {
-            fullNamespace += "." + filePathSegments[index];
+            fullNamespace += '.' + filePathSegments[index];
         }
-        return fullNamespace
+        
+        return fullNamespace;
     }
 }

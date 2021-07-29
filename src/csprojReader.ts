@@ -1,5 +1,5 @@
-import Nameable from "./nameable";
-const xml2js = require("xml2js");
+import Nameable from './nameable';
+import * as xml2js from 'xml2js';
 
 export default class CsprojReader implements Nameable {
     private readonly xml: string;
@@ -33,11 +33,11 @@ export default class CsprojReader implements Nameable {
                     foundNamespace = propertyGroup.RootNamespace[0];
                     break;
                 }
-            };
+            }
 
             return foundNamespace;
         } catch (errParsingXml) {
-            console.error(`Error parsing project xml`, errParsingXml);
+            console.error('Error parsing project xml', errParsingXml);
         }
 
         return undefined;

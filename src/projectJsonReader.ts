@@ -1,4 +1,4 @@
-import Nameable from "./nameable";
+import Nameable from './nameable';
 
 export default class ProjectJsonReader implements Nameable {
     private readonly json: string;
@@ -13,7 +13,7 @@ export default class ProjectJsonReader implements Nameable {
     }
 
     public getRootNamespace(): Promise<string | undefined> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve/*, reject*/) => {
             try {
                 const jsonObject = JSON.parse(this.json);
 
