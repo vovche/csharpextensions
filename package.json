@@ -20,7 +20,9 @@
         "onLanguage:csharp",
         "onCommand:csharpextensions.createClass",
         "onCommand:csharpextensions.createEnum",
-        "onCommand:csharpextensions.createInterface"
+        "onCommand:csharpextensions.createInterface",
+        "onCommand:csharpextensions.createController",
+        "onCommand:csharpextensions.createApiController"
     ],
     "main": "./out/src/extension",
     "contributes": {
@@ -42,21 +44,37 @@
             {
                 "command": "csharpextensions.createEnum",
                 "title": "Enum"
+            },
+            {
+                "command": "csharpextensions.createController",
+                "title": "Controller"
+            },
+            {
+                "command": "csharpextensions.createApiController",
+                "title": "Api Controller"
             }
         ],
         "menus": {
             "csharpextensions.new": [
                 {
-                    "command": "csharpextensions.createClass",
-                    "group": "navigation@0"
+                    "group": "basics@0",
+                    "command": "csharpextensions.createClass"
                 },
                 {
-                    "group": "navigation@1",
+                    "group": "basics@1",
                     "command": "csharpextensions.createInterface"
                 },
                 {
-                    "group": "navigation@2",
+                    "group": "basics@2",
                     "command": "csharpextensions.createEnum"
+                },
+                {
+                    "group": "mvc@0",
+                    "command": "csharpextensions.createController"
+                },
+                {
+                    "group": "mvc@1",
+                    "command": "csharpextensions.createApiController"
                 }
             ],
             "explorer/context": [

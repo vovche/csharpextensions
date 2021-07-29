@@ -11,9 +11,16 @@ export function activate(context: vscode.ExtensionContext) {
         scheme: 'file'
     };
 
-    context.subscriptions.push(vscode.commands.registerCommand('csharpextensions.createClass', createClass));
-    context.subscriptions.push(vscode.commands.registerCommand('csharpextensions.createInterface', createInterface));
-    context.subscriptions.push(vscode.commands.registerCommand('csharpextensions.createEnum', createEnum));
+    context.subscriptions.push(vscode.commands.registerCommand('csharpextensions.createClass',
+        async (args: any) => await promptAndSave(args, 'class')));
+    context.subscriptions.push(vscode.commands.registerCommand('csharpextensions.createInterface',
+        async (args: any) => await promptAndSave(args, 'interface')));
+    context.subscriptions.push(vscode.commands.registerCommand('csharpextensions.createEnum',
+        async (args: any) => await promptAndSave(args, 'enum')));
+    context.subscriptions.push(vscode.commands.registerCommand('csharpextensions.createController',
+        async (args: any) => await promptAndSave(args, 'controller')));
+    context.subscriptions.push(vscode.commands.registerCommand('csharpextensions.createApiController',
+        async (args: any) => await promptAndSave(args, 'apicontroller')));
 
     const codeActionProvider = new CodeActionProvider();
     const disposable = vscode.languages.registerCodeActionsProvider(documentSelector, codeActionProvider);
@@ -21,21 +28,12 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 }
 
-async function createClass(args: any) {
-    await promptAndSave(args, 'class');
-}
-
-async function createInterface(args: any) {
-    await promptAndSave(args, 'interface');
-}
-
-async function createEnum(args: any) {
-    await promptAndSave(args, 'enum');
-}
-
 async function promptAndSave(args: any, templatetype: string) {
     if (args == null) {
-        args = { _fsPath: vscode.workspace.rootPath }
+        args = {
+            _fsPath: vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length
+                ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined
+        }
     }
 
     const incomingpath: string = args._fsPath || args.fsPath || args.path;
