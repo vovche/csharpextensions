@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.4.1] - 2021-07-29
+### Added
+- Controller template
+- Api controller template (based on the one from [Tdallau](https://github.com/Tdallau))
+- Moved actions to a submenu
+### Fixed
+- Only show submenu when context is folder
+
 ## [1.4.0] - 2021-05-26
 ### Fixed
 - Using async / await
