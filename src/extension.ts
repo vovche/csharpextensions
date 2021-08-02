@@ -5,6 +5,9 @@ import { promises as fs } from 'fs';
 import CodeActionProvider from './codeActionProvider';
 import NamespaceDetector from './namespaceDetector';
 
+const classnameRegex = new RegExp(/\${classname}/, 'g');
+const namespaceRegex = new RegExp(/\${namespace}/, 'g');
+
 export function activate(context: vscode.ExtensionContext): void {
     const documentSelector: vscode.DocumentSelector = {
         language: 'csharp',
@@ -92,8 +95,8 @@ async function openTemplateAndSaveNewFile(type: string, namespace: string, filen
         const doc = await fs.readFile(templateFilePath, 'utf-8');
 
         let text = doc
-            .replace('${namespace}', namespace)
-            .replace('${classname}', filename);
+            .replace(namespaceRegex, namespace)
+            .replace(classnameRegex, filename);
 
         const cursorPosition = findCursorInTemplate(text);
 
