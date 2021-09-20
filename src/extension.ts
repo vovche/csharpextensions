@@ -7,6 +7,10 @@ import NamespaceDetector from './namespaceDetector';
 
 const classnameRegex = new RegExp(/\${classname}/, 'g');
 const namespaceRegex = new RegExp(/\${namespace}/, 'g');
+const knownExtensionNames = [
+    'kreativ-software.csharpextensions',
+    'jsw.csharpextensions'
+];
 
 export function activate(context: vscode.ExtensionContext): void {
     const documentSelector: vscode.DocumentSelector = {
@@ -79,9 +83,19 @@ function correctExtension(filename: string) {
     return filename;
 }
 
+function findCurrentExtension(): vscode.Extension<any> | undefined {
+    for (let i = 0; i < knownExtensionNames.length; i++) {
+        const extension = vscode.extensions.getExtension(knownExtensionNames[i]);
+
+        if (extension) return extension;
+    }
+
+    return undefined;
+}
+
 async function openTemplateAndSaveNewFile(type: string, namespace: string, filename: string, originalfilepath: string) {
     const templatefileName = type + '.tmpl';
-    const extension = vscode.extensions.getExtension('kreativ-software.csharpextensions');
+    const extension = findCurrentExtension();
 
     if (!extension) {
         vscode.window.showErrorMessage('Weird, but the extension you are currently using could not be found');
