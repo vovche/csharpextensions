@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.4.3] - 2021-09-20
+### Added
+- New setting for adding default usings - Added by [YoussefWaelMohamedLotfy](https://github.com/YoussefWaelMohamedLotfy)
+### Fixed
+- Running the extension in vscodium is fixed
+
+## [1.4.2] - 2021-08-02
+### Fixed
+- Fixes for the controller template
+
 ## [1.4.1] - 2021-07-29
 ### Added
 - Controller template
@@ -48,7 +58,6 @@ All notable changes to this project will be documented in this file.
 - Ability to turn "this" prefix on and off
 
 ### Changed 
-
 - Detect base classes for initializing members 
 
 ## [1.2.0] - 2017-02-02
