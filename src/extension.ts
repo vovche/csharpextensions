@@ -93,10 +93,24 @@ async function openTemplateAndSaveNewFile(type: string, namespace: string, filen
 
     try {
         const doc = await fs.readFile(templateFilePath, 'utf-8');
+        const includeNamespaces = vscode.workspace.getConfiguration().get('csharpextensions.includeNamespaces', true);
+        let namespaces = '';
+
+        if (includeNamespaces) {
+            namespaces = [
+                'using System;',
+                'using System.Collections.Generic;',
+                'using System.Linq;',
+                'using System.Threading.Tasks;'
+            ].join(EOL);
+
+            namespaces = `${namespaces}${EOL}${EOL}`;
+        }
 
         let text = doc
             .replace(namespaceRegex, namespace)
-            .replace(classnameRegex, filename);
+            .replace(classnameRegex, filename)
+            .replace('${namespaces}', namespaces);
 
         const cursorPosition = findCursorInTemplate(text);
 

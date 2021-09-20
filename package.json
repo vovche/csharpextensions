@@ -96,12 +96,17 @@
                 "csharpextensions.useThisForCtorAssignments": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Wether or not a ctor assignment of a property or variable should be prefixed with this."
+                    "description": "Whether or not a ctor assignment of a property or variable should be prefixed with this."
                 },
                 "csharpextensions.reFormatAfterChange": {
                     "type": "boolean",
                     "default": true,
-                    "description": "If true the document will be reformatted after codeactions are used."
+                    "description": "If true, the document will be reformatted after codeactions are used."
+                },
+                "csharpextensions.includeNamespaces": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "If created classes should include default namespaces"
                 }
             }
         }
