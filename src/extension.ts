@@ -207,7 +207,13 @@ async function promptAndSave(args: any, templatetype: string) {
     const incomingpath: string = args._fsPath || args.fsPath || args.path;
 
     try {
-        const newfilename = await vscode.window.showInputBox({ ignoreFocusOut: true, prompt: 'Please enter filename', value: 'new' + templatetype + '.cs' });
+        const promptFilename = `new${templatetype}.cs`;
+        const newfilename = await vscode.window.showInputBox({
+            ignoreFocusOut: true,
+            prompt: 'Please enter filename',
+            value: promptFilename,
+            valueSelection: [ 0, promptFilename.length - 3 ]
+        });
 
         if (typeof newfilename === 'undefined' || newfilename === '') return;
 
