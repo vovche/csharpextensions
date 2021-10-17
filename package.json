@@ -22,7 +22,11 @@
         "onCommand:csharpextensions.createEnum",
         "onCommand:csharpextensions.createInterface",
         "onCommand:csharpextensions.createController",
-        "onCommand:csharpextensions.createApiController"
+        "onCommand:csharpextensions.createApiController",
+        "onCommand:csharpextensions.createUwpPage",
+        "onCommand:csharpextensions.createUwpWindow",
+        "onCommand:csharpextensions.createUwpUserControl",
+        "onCommand:csharpextensions.createUwpResourceFile"
     ],
     "main": "./out/src/extension",
     "contributes": {
@@ -52,6 +56,22 @@
             {
                 "command": "csharpextensions.createApiController",
                 "title": "Api Controller"
+            },
+            {
+                "command": "csharpextensions.createUwpPage",
+                "title": "UWP Page"
+            },
+            {
+                "command": "csharpextensions.createUwpWindow",
+                "title": "UWP Window"
+            },
+            {
+                "command": "csharpextensions.createUwpUserControl",
+                "title": "UWP UserControl"
+            },
+            {
+                "command": "csharpextensions.createUwpResourceFile",
+                "title": "UWP Resource File"
             }
         ],
         "menus": {
@@ -75,6 +95,22 @@
                 {
                     "group": "mvc@1",
                     "command": "csharpextensions.createApiController"
+                },
+                {
+                    "group": "uwp@0",
+                    "command": "csharpextensions.createUwpPage"
+                },
+                {
+                    "group": "uwp@1",
+                    "command": "csharpextensions.createUwpWindow"
+                },
+                {
+                    "group": "uwp@2",
+                    "command": "csharpextensions.createUwpUserControl"
+                },
+                {
+                    "group": "uwp@3",
+                    "command": "csharpextensions.createUwpResourceFile"
                 }
             ],
             "explorer/context": [
