@@ -5,7 +5,7 @@ import * as path from 'path';
 
 import NamespaceDetector from '../namespaceDetector';
 
-export abstract class Template {
+export default abstract class Template {
     private _name: string;
     private _command: string;
 

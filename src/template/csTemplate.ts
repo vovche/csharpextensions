@@ -1,7 +1,7 @@
 import { EOL } from 'os';
-import { Template } from './template';
+import Template from './template';
 
-export class CsTemplate extends Template {
+export default class CsTemplate extends Template {
     constructor(name: string, command: string) {
         super(name, command);
     }

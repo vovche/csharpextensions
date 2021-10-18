@@ -3,10 +3,11 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { EOL } from 'os';
 
-import { Template } from './template/template';
-import { CsTemplate } from './template/csTemplate';
-import { ReswTemplate } from './template/reswTemplate';
-import { XamlTemplate } from './template/xamlTemplate';
+import Template from './template/template';
+import CsTemplate from './template/csTemplate';
+import CshtmlTemplate from './template/cshtmlTemplate';
+import ReswTemplate from './template/reswTemplate';
+import XamlTemplate from './template/xamlTemplate';
 import CodeActionProvider from './codeActionProvider';
 
 
@@ -136,6 +137,7 @@ export class Extension {
             this.KnownTemplates.set('enum', new CsTemplate('enum', 'createEnum'));
             this.KnownTemplates.set('controller', new CsTemplate('controller', 'createController'));
             this.KnownTemplates.set('apicontroller', new CsTemplate('apicontroller', 'createApiController'));
+            this.KnownTemplates.set('razor_page', new CshtmlTemplate('razor_page', 'createRazorPage'));
             this.KnownTemplates.set('uwp_page', new XamlTemplate('uwp_page', 'createUwpPage'));
             this.KnownTemplates.set('uwp_window', new XamlTemplate('uwp_window', 'createUwpWindow'));
             this.KnownTemplates.set('uwp_usercontrol', new XamlTemplate('uwp_usercontrol', 'createUwpUserControl'));

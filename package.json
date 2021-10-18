@@ -23,6 +23,7 @@
         "onCommand:csharpextensions.createInterface",
         "onCommand:csharpextensions.createController",
         "onCommand:csharpextensions.createApiController",
+        "onCommand:csharpextensions.createRazorPage",
         "onCommand:csharpextensions.createUwpPage",
         "onCommand:csharpextensions.createUwpWindow",
         "onCommand:csharpextensions.createUwpUserControl",
@@ -56,6 +57,10 @@
             {
                 "command": "csharpextensions.createApiController",
                 "title": "Api Controller"
+            },
+            {
+                "command": "csharpextensions.createRazorPage",
+                "title": "Razor Page"
             },
             {
                 "command": "csharpextensions.createUwpPage",
@@ -95,6 +100,10 @@
                 {
                     "group": "mvc@1",
                     "command": "csharpextensions.createApiController"
+                },
+                {
+                    "group": "mvc@2",
+                    "command": "csharpextensions.createRazorPage"
                 },
                 {
                     "group": "uwp@0",

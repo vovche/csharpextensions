@@ -1,6 +1,6 @@
-import { Template } from './template';
+import Template from './template';
 
-export class ReswTemplate extends Template {
+export default class ReswTemplate extends Template {
     constructor(name: string, command: string) {
         super(name, command);
     }
