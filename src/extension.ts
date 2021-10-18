@@ -3,14 +3,17 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { EOL } from 'os';
 
-import { Template } from './template';
+import { Template } from './template/template';
+import { CsTemplate } from './template/csTemplate';
+import { ReswTemplate } from './template/reswTemplate';
+import { XamlTemplate } from './template/xamlTemplate';
 import CodeActionProvider from './codeActionProvider';
 
 
 export function activate(context: vscode.ExtensionContext): void {
     const extension = Extension.GetInstance();
 
-    Template.GetKnownTemplates().forEach(template => {
+    Extension.GetKnownTemplates().forEach(template => {
         context.subscriptions.push(vscode.commands.registerCommand(template.getCommand(),
             async (args: any) => await extension.createFromTemplate(args, template)));
     });
@@ -92,6 +95,7 @@ export class Extension {
     }
 
     private static TemplatesPath = 'templates';
+    private static KnownTemplates: Map<string, Template>;
     private static CurrentVscodeExtension: vscode.Extension<any> | undefined = undefined;
     private static Instance: Extension;
     private static KnownExtensionNames = [
@@ -121,5 +125,23 @@ export class Extension {
         }
 
         return this.CurrentVscodeExtension;
+    }
+
+    static GetKnownTemplates(): Map<string, Template> {
+        if (!this.KnownTemplates) {
+            this.KnownTemplates = new Map();
+
+            this.KnownTemplates.set('class', new CsTemplate('class', 'createClass'));
+            this.KnownTemplates.set('interface', new CsTemplate('interface', 'createInterface'));
+            this.KnownTemplates.set('enum', new CsTemplate('enum', 'createEnum'));
+            this.KnownTemplates.set('controller', new CsTemplate('controller', 'createController'));
+            this.KnownTemplates.set('apicontroller', new CsTemplate('apicontroller', 'createApiController'));
+            this.KnownTemplates.set('uwp_page', new XamlTemplate('uwp_page', 'createUwpPage'));
+            this.KnownTemplates.set('uwp_window', new XamlTemplate('uwp_window', 'createUwpWindow'));
+            this.KnownTemplates.set('uwp_usercontrol', new XamlTemplate('uwp_usercontrol', 'createUwpUserControl'));
+            this.KnownTemplates.set('uwp_resource', new ReswTemplate('uwp_resource', 'createUwpResourceFile'));
+        }
+
+        return this.KnownTemplates;
     }
 }
