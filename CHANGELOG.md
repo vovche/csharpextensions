@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2021-10-17
+### Added
+- UWP templates (Window, Page, UserControl, Resource)
+- Removed '.cs' from filename dialog placeholder
+
 ## [1.4.3] - 2021-09-20
 ### Added
 - New setting for adding default usings - Added by [YoussefWaelMohamedLotfy](https://github.com/YoussefWaelMohamedLotfy)
