@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.5.1] - 2021-10-18
+### Added
+- Razor page template
+
 ## [1.5.0] - 2021-10-17
 ### Added
 - UWP templates (Window, Page, UserControl, Resource)
