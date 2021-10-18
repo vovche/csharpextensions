@@ -135,9 +135,17 @@ export class Extension {
             this.KnownTemplates.set('class', new CsTemplate('class', 'createClass'));
             this.KnownTemplates.set('interface', new CsTemplate('interface', 'createInterface'));
             this.KnownTemplates.set('enum', new CsTemplate('enum', 'createEnum'));
-            this.KnownTemplates.set('controller', new CsTemplate('controller', 'createController'));
-            this.KnownTemplates.set('apicontroller', new CsTemplate('apicontroller', 'createApiController'));
-            this.KnownTemplates.set('razor_page', new CshtmlTemplate('razor_page', 'createRazorPage'));
+            this.KnownTemplates.set('controller', new CsTemplate('controller', 'createController', [
+                'System.Diagnostics',
+                'Microsoft.AspNetCore.Mvc',
+                'Microsoft.Extensions.Logging',
+            ]));
+            this.KnownTemplates.set('apicontroller', new CsTemplate('apicontroller', 'createApiController', ['Microsoft.AspNetCore.Mvc']));
+            this.KnownTemplates.set('razor_page', new CshtmlTemplate('razor_page', 'createRazorPage', [
+                'Microsoft.AspNetCore.Mvc',
+                'Microsoft.AspNetCore.Mvc.RazorPages',
+                'Microsoft.Extensions.Logging',
+            ]));
             this.KnownTemplates.set('uwp_page', new XamlTemplate('uwp_page', 'createUwpPage'));
             this.KnownTemplates.set('uwp_window', new XamlTemplate('uwp_window', 'createUwpWindow'));
             this.KnownTemplates.set('uwp_usercontrol', new XamlTemplate('uwp_usercontrol', 'createUwpUserControl'));

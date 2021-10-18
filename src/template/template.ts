@@ -1,24 +1,28 @@
 import * as vscode from 'vscode';
 
 import { promises as fs } from 'fs';
+import { EOL } from 'os';
 import * as path from 'path';
+import { sortBy, uniq } from 'lodash';
 
 import NamespaceDetector from '../namespaceDetector';
 
 export default abstract class Template {
     private _name: string;
     private _command: string;
+    private _requiredUsings: string[];
 
-    constructor(name: string, command: string) {
+    constructor(name: string, command: string, requiredUsings: string[] = []) {
         this._name = name;
         this._command = command;
+        this._requiredUsings = requiredUsings;
     }
 
     public getName(): string { return this._name; }
     public getCommand(): string {
         return `csharpextensions.${this._command}`;
     }
-  
+
     public async getExistingFiles(pathWithoutExtension: string): Promise<string[]> {
         const extensions = this.getExtensions();
         const existingFiles: string[] = [];
@@ -42,17 +46,15 @@ export default abstract class Template {
         return await namespaceDetector.getNamespace();
     }
 
-    protected async _createFile(templatePath: string, filePath: string, filename: string, namespaces: string = '') {
+    protected async _createFile(templatePath: string, filePath: string, filename: string) {
         try {
             const doc = await fs.readFile(templatePath, 'utf-8');
             const namespace = await this.getNamespace(filePath);
-            const includeNamespaces = vscode.workspace.getConfiguration().get('csharpextensions.includeNamespaces', true);
 
             let text = doc
                 .replace(Template.NamespaceRegex, namespace)
-                .replace(Template.ClassnameRegex, filename);
-
-            if (includeNamespaces) text = text.replace('${namespaces}', namespaces);
+                .replace(Template.ClassnameRegex, filename)
+                .replace('${namespaces}', this.getUsings());
 
             const cursorPosition = this._findCursorInTemplate(text);
 
@@ -81,7 +83,25 @@ export default abstract class Template {
         return path.join(templatesPath, `${templateName}.tmpl`);
     }
 
-    public abstract getExtensions(): string[];
+    private getUsings(): string {
+        const includeNamespaces = vscode.workspace.getConfiguration().get('csharpextensions.includeNamespaces', true);
+        let usings = this._requiredUsings;
+
+        if (includeNamespaces) usings = usings.concat(this.getOptionalUsings());
+
+        if (!usings.length) return '';
+
+        const uniqueUsings = uniq(usings);
+        const sortedUsings = sortBy(uniqueUsings, [(using) => !using.startsWith('System'), (using) => using]);
+        const joinedUsings = sortedUsings
+            .map(using => `using ${using};`)
+            .join(EOL);
+
+        return `${joinedUsings}${EOL}${EOL}`;
+    }
+
+    protected abstract getExtensions(): string[];
+    protected abstract getOptionalUsings(): string[];
     public abstract create(templatesPath: string, pathWithoutExtension: string, filename: string): Promise<void>;
 
     private _findCursorInTemplate(text: string): vscode.Position | null {

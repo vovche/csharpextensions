@@ -5,8 +5,12 @@ export default class ReswTemplate extends Template {
         super(name, command);
     }
 
-    public getExtensions(): string[] {
+    protected getExtensions(): string[] {
         return ['.resw'];
+    }
+
+    protected getOptionalUsings(): string[] {
+        return [];
     }
 
     public async create(templatesPath: string, pathWithoutExtension: string, filename: string): Promise<void> {
