@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.5.2] - 2021-10-19
+### Fixed
+- Loading speed increased by using webpack & excluding unneeded files from package
+- Code actions throwing errors
+
 ## [1.5.1] - 2021-10-18
 ### Added
 - Razor page template
