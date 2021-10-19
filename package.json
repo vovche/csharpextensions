@@ -19,6 +19,12 @@
         "Linters",
         "Snippets"
     ],
+    "keywords": [
+        ".NET",
+        "ASP.NET",
+        ".NET Core",
+        "dotnet"
+    ],
     "activationEvents": [
         "onLanguage:csharp",
         "onCommand:csharpextensions.createClass",
