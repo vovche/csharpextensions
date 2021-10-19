@@ -3,8 +3,9 @@ import {
     window,
     workspace,
     CancellationToken,
+    CodeAction,
     CodeActionContext,
-    Command,
+    CodeActionKind,
     Position,
     Range,
     TextDocument,
@@ -32,24 +33,24 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
         commands.registerCommand(this._commandIds.ctorFromProperties, this.executeCtorFromProperties, this);
     }
 
-    public provideCodeActions(document: TextDocument, range: Range, context: CodeActionContext, token: CancellationToken): Command[] {
-        const commands = new Array<Command>();
+    public provideCodeActions(document: TextDocument, range: Range, context: CodeActionContext, token: CancellationToken): CodeAction[] {//Command[] {
+        const codeActions = new Array<CodeAction>();
 
         const addInitalizeFromCtor = (type: MemberGenerationType) => {
-            const cmd = this.getInitializeFromCtorCommand(document, range, context, token, type);
+            const action = this.getInitializeFromCtorAction(document, range, context, token, type);
 
-            if (cmd) commands.push(cmd);
+            if (action) codeActions.push(action);
         };
 
         addInitalizeFromCtor(MemberGenerationType.PrivateField);
         addInitalizeFromCtor(MemberGenerationType.ReadonlyProperty);
         addInitalizeFromCtor(MemberGenerationType.Property);
 
-        const ctorPCommand = this.getCtorpCommand(document, range, context, token);
+        const ctorPAction = this.getCtorpAction(document, range, context, token);
 
-        if (ctorPCommand) commands.push(ctorPCommand);
+        if (ctorPAction) codeActions.push(ctorPAction);
 
-        return commands;
+        return codeActions;
     }
 
     private camelize(str: string) {
@@ -118,15 +119,15 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
         }
     }
 
-    private getCtorpCommand(document: TextDocument, range: Range, context: CodeActionContext, token: CancellationToken): Command | null {
+    private getCtorpAction(document: TextDocument, range: Range, context: CodeActionContext, token: CancellationToken): CodeAction | undefined {
         const editor = window.activeTextEditor;
 
-        if (!editor) return null;
+        if (!editor) return;
 
         const position = editor.selection.active;
         const withinClass = this.findClassFromLine(document, position.line);
 
-        if (!withinClass) return null;
+        if (!withinClass) return;
 
         const properties = new Array<CSharpPropertyDefinition>();
         let lineNo = 0;
@@ -155,11 +156,11 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
             lineNo++;
         }
 
-        if (!properties.length) return null;
+        if (!properties.length) return;
 
         const classDefinition = this.findClassFromLine(document, position.line);
 
-        if (!classDefinition) return null;
+        if (!classDefinition) return;
 
         const parameter: ConstructorFromPropertiesArgument = {
             properties: properties,
@@ -167,13 +168,15 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
             document: document
         };
 
-        const cmd: Command = {
-            title: 'Initialize ctor from properties...',
+        const codeAction = new CodeAction('Initialize ctor from properties...', CodeActionKind.RefactorExtract);
+
+        codeAction.command = {
+            title: codeAction.title,
             command: this._commandIds.ctorFromProperties,
             arguments: [parameter]
         };
 
-        return cmd;
+        return codeAction;
     }
 
     private findClassFromLine(document: TextDocument, lineNo: number): CSharpClassDefinition | null {
@@ -220,10 +223,10 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
         await this.formatDocument(args.document.uri, edit, edits);
     }
 
-    private getInitializeFromCtorCommand(document: TextDocument, range: Range, context: CodeActionContext, token: CancellationToken, memberGenerationType: MemberGenerationType): Command | null {
+    private getInitializeFromCtorAction(document: TextDocument, range: Range, context: CodeActionContext, token: CancellationToken, memberGenerationType: MemberGenerationType): CodeAction | undefined {
         const editor = window.activeTextEditor;
 
-        if (!editor) return null;
+        if (!editor) return;
 
         const position = editor.selection.active;
         const positionStart = new Position(position.line < 2 ? 0 : position.line - 2, 0); // Limit line to start of file
@@ -231,11 +234,11 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
         const surrounding = document.getText(new Range(positionStart, positionEnd));
         const wordRange = editor.document.getWordRangeAtPosition(position);
 
-        if (!wordRange) return null;
+        if (!wordRange) return;
 
         const matches = this._generalRegex.exec(surrounding);
 
-        if (!matches) return null;
+        if (!matches) return;
 
         const ctorParamStr = matches[3];
         const lineText = editor.document.getText(new Range(position.line, 0, position.line, wordRange.end.character));
@@ -249,7 +252,7 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
                 parameterType = separated[0].trim();
         });
 
-        if (!parameterType) return null;
+        if (!parameterType) return;
 
         const tabSize = workspace.getConfiguration().get('editor.tabSize', 4);
         const privateMemberPrefix = workspace.getConfiguration().get('csharpextensions.privateMemberPrefix', '');
@@ -293,12 +296,12 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
                 break;
             default:
                 //TODO: Show error?
-                return null;
+                return;
         }
 
         const constructorBodyStart = this.findConstructorBodyStart(document, position);
 
-        if (!constructorBodyStart) return null;
+        if (!constructorBodyStart) return;
 
         const parameter: InitializeFieldFromConstructor = {
             document: document,
@@ -309,13 +312,15 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
             constructorStart: this.findConstructorStart(document, position)
         };
 
-        const cmd: Command = {
+        const codeAction = new CodeAction(title, CodeActionKind.RefactorExtract);
+
+        codeAction.command = {
             title: title,
             command: this._commandIds.initializeMemberFromCtor,
             arguments: [parameter]
         };
 
-        return cmd;
+        return codeAction;
     }
 
     private findConstructorBodyStart(document: TextDocument, position: Position): Position | null {
