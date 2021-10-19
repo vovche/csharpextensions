@@ -1,9 +1,23 @@
-import * as vscode from 'vscode';
+import {
+    commands,
+    window,
+    workspace,
+    CancellationToken,
+    CodeActionContext,
+    Command,
+    Position,
+    Range,
+    TextDocument,
+    TextEdit,
+    Uri,
+    WorkspaceEdit,
+    CodeActionProvider as VSCodeCodeActionProvider
+} from 'vscode';
 import * as os from 'os';
 
 //TODO: Extract regexps
 
-export default class CodeActionProvider implements vscode.CodeActionProvider {
+export default class CodeActionProvider implements VSCodeCodeActionProvider {
     private _commandIds = {
         ctorFromProperties: 'csharpextensions.ctorFromProperties',
         initializeMemberFromCtor: 'csharpextensions.initializeMemberFromCtor',
@@ -14,12 +28,12 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
     private readonly _generalRegex = new RegExp(/(public|private|protected)\s(.*?)\(([\s\S]*?)\)/gi);
 
     constructor() {
-        vscode.commands.registerCommand(this._commandIds.initializeMemberFromCtor, this.initializeMemberFromCtor, this);
-        vscode.commands.registerCommand(this._commandIds.ctorFromProperties, this.executeCtorFromProperties, this);
+        commands.registerCommand(this._commandIds.initializeMemberFromCtor, this.initializeMemberFromCtor, this);
+        commands.registerCommand(this._commandIds.ctorFromProperties, this.executeCtorFromProperties, this);
     }
 
-    public provideCodeActions(document: vscode.TextDocument, range: vscode.Range, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.Command[] {
-        const commands = new Array<vscode.Command>();
+    public provideCodeActions(document: TextDocument, range: Range, context: CodeActionContext, token: CancellationToken): Command[] {
+        const commands = new Array<Command>();
 
         const addInitalizeFromCtor = (type: MemberGenerationType) => {
             const cmd = this.getInitializeFromCtorCommand(document, range, context, token, type);
@@ -47,7 +61,7 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
     }
 
     private async executeCtorFromProperties(args: ConstructorFromPropertiesArgument) {
-        const tabSize = vscode.workspace.getConfiguration().get('editor.tabSize', 4);
+        const tabSize = workspace.getConfiguration().get('editor.tabSize', 4);
         const ctorParams = new Array<string>();
 
         if (!args.properties)
@@ -68,40 +82,44 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
         }
         `;
 
-        const edit = new vscode.WorkspaceEdit();
-        const edits = new Array<vscode.TextEdit>();
+        const edit = new WorkspaceEdit();
+        const edits = new Array<TextEdit>();
 
-        const pos = new vscode.Position(firstPropertyLine, 0);
-        const range = new vscode.Range(pos, pos);
-        const ctorEdit = new vscode.TextEdit(range, ctorStatement);
+        const pos = new Position(firstPropertyLine, 0);
+        const range = new Range(pos, pos);
+        const ctorEdit = new TextEdit(range, ctorStatement);
 
         edits.push(ctorEdit);
 
         await this.formatDocument(args.document.uri, edit, edits);
     }
 
-    private async formatDocument(documentUri: vscode.Uri, edit: vscode.WorkspaceEdit, edits: Array<vscode.TextEdit>) {
+    private async formatDocument(documentUri: Uri, edit: WorkspaceEdit, edits: Array<TextEdit>) {
         edit.set(documentUri, edits);
 
-        const reFormatAfterChange = vscode.workspace.getConfiguration().get('csharpextensions.reFormatAfterChange', true);
+        const reFormatAfterChange = workspace.getConfiguration().get('csharpextensions.reFormatAfterChange', true);
 
-        await vscode.workspace.applyEdit(edit);
+        await workspace.applyEdit(edit);
 
         if (reFormatAfterChange) {
-            const formattingEdits = await vscode.commands.executeCommand<vscode.TextEdit[]>('vscode.executeFormatDocumentProvider', documentUri);
+            try {
+                const formattingEdits = await commands.executeCommand<TextEdit[]>('executeFormatDocumentProvider', documentUri);
 
-            if (formattingEdits !== undefined) {
-                const formatEdit = new vscode.WorkspaceEdit();
+                if (formattingEdits !== undefined) {
+                    const formatEdit = new WorkspaceEdit();
 
-                formatEdit.set(documentUri, formattingEdits);
+                    formatEdit.set(documentUri, formattingEdits);
 
-                vscode.workspace.applyEdit(formatEdit);
+                    workspace.applyEdit(formatEdit);
+                }
+            } catch (err) {
+                console.error('Error trying to format document - ', err);
             }
         }
     }
 
-    private getCtorpCommand(document: vscode.TextDocument, range: vscode.Range, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.Command | null {
-        const editor = vscode.window.activeTextEditor;
+    private getCtorpCommand(document: TextDocument, range: Range, context: CodeActionContext, token: CancellationToken): Command | null {
+        const editor = window.activeTextEditor;
 
         if (!editor) return null;
 
@@ -149,7 +167,7 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
             document: document
         };
 
-        const cmd: vscode.Command = {
+        const cmd: Command = {
             title: 'Initialize ctor from properties...',
             command: this._commandIds.ctorFromProperties,
             arguments: [parameter]
@@ -158,8 +176,11 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
         return cmd;
     }
 
-    private findClassFromLine(document: vscode.TextDocument, lineNo: number): CSharpClassDefinition | null {
-        while (lineNo > 0) {
+    private findClassFromLine(document: TextDocument, lineNo: number): CSharpClassDefinition | null {
+        if (!lineNo) lineNo = document.lineCount - 1;
+        if (lineNo >= document.lineCount) lineNo = document.lineCount - 1;
+
+        while (lineNo >= 0) {
             const line = document.lineAt(lineNo);
             const match = this._classRegex.exec(line.text);
 
@@ -180,15 +201,15 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
     }
 
     private async initializeMemberFromCtor(args: InitializeFieldFromConstructor) {
-        const edit = new vscode.WorkspaceEdit();
+        const edit = new WorkspaceEdit();
 
-        const bodyStartRange = new vscode.Range(args.constructorBodyStart, args.constructorBodyStart);
-        const declarationRange = new vscode.Range(args.constructorStart, args.constructorStart);
+        const bodyStartRange = new Range(args.constructorBodyStart, args.constructorBodyStart);
+        const declarationRange = new Range(args.constructorStart, args.constructorStart);
 
-        const declarationEdit = new vscode.TextEdit(declarationRange, args.memberGeneration.declaration);
-        const memberInitEdit = new vscode.TextEdit(bodyStartRange, args.memberGeneration.assignment);
+        const declarationEdit = new TextEdit(declarationRange, args.memberGeneration.declaration);
+        const memberInitEdit = new TextEdit(bodyStartRange, args.memberGeneration.assignment);
 
-        const edits = new Array<vscode.TextEdit>();
+        const edits = new Array<TextEdit>();
 
         if (args.document.getText().indexOf(args.memberGeneration.declaration.trim()) === -1)
             edits.push(declarationEdit);
@@ -199,13 +220,15 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
         await this.formatDocument(args.document.uri, edit, edits);
     }
 
-    private getInitializeFromCtorCommand(document: vscode.TextDocument, range: vscode.Range, context: vscode.CodeActionContext, token: vscode.CancellationToken, memberGenerationType: MemberGenerationType): vscode.Command | null {
-        const editor = vscode.window.activeTextEditor;
+    private getInitializeFromCtorCommand(document: TextDocument, range: Range, context: CodeActionContext, token: CancellationToken, memberGenerationType: MemberGenerationType): Command | null {
+        const editor = window.activeTextEditor;
 
         if (!editor) return null;
 
         const position = editor.selection.active;
-        const surrounding = document.getText(new vscode.Range(new vscode.Position(position.line - 2, 0), new vscode.Position(position.line + 2, 0)));
+        const positionStart = new Position(position.line < 2 ? 0 : position.line - 2, 0); // Limit line to start of file
+        const positionEnd = new Position(document.lineCount - position.line < 2 ? 0 : position.line + 2, 0); // Limit line to end of file
+        const surrounding = document.getText(new Range(positionStart, positionEnd));
         const wordRange = editor.document.getWordRangeAtPosition(position);
 
         if (!wordRange) return null;
@@ -215,62 +238,62 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
         if (!matches) return null;
 
         const ctorParamStr = matches[3];
-        const lineText = editor.document.getText(new vscode.Range(position.line, 0, position.line, wordRange.end.character));
+        const lineText = editor.document.getText(new Range(position.line, 0, position.line, wordRange.end.character));
         const selectedName = lineText.substr(wordRange.start.character, wordRange.end.character - wordRange.start.character);
         let parameterType: string | null = null;
 
         ctorParamStr.split(',').forEach(strPart => {
-            const separated = strPart.trim().split(' ');
+            const separated = strPart?.trim().split(' ');
 
-            if (separated[1].trim() === selectedName)
+            if (separated?.length > 1 && separated[1].trim() === selectedName)
                 parameterType = separated[0].trim();
         });
 
         if (!parameterType) return null;
 
-        const tabSize = vscode.workspace.getConfiguration().get('editor.tabSize', 4);
-        const privateMemberPrefix = vscode.workspace.getConfiguration().get('csharpextensions.privateMemberPrefix', '');
-        const prefixWithThis = vscode.workspace.getConfiguration().get('csharpextensions.useThisForCtorAssignments', true);
+        const tabSize = workspace.getConfiguration().get('editor.tabSize', 4);
+        const privateMemberPrefix = workspace.getConfiguration().get('csharpextensions.privateMemberPrefix', '');
+        const prefixWithThis = workspace.getConfiguration().get('csharpextensions.useThisForCtorAssignments', true);
 
         let memberGeneration: MemberGenerationProperties;
         let title: string;
         let name: string;
 
         switch (memberGenerationType) {
-        case MemberGenerationType.PrivateField:
-            title = 'Initialize field from parameter...';
+            case MemberGenerationType.PrivateField:
+                title = 'Initialize field from parameter...';
 
-            memberGeneration = {
-                type: memberGenerationType,
-                declaration: `${Array(tabSize * 2).join(' ')} private readonly ${parameterType} ${privateMemberPrefix}${selectedName};\r\n`,
-                assignment: `${Array(tabSize * 3).join(' ')} ${(prefixWithThis ? 'this.' : '')}${privateMemberPrefix}${selectedName} = ${selectedName};\r\n`
-            };
-            break;
-        case MemberGenerationType.ReadonlyProperty:
-            title = 'Initialize readonly property from parameter...';
+                memberGeneration = {
+                    type: memberGenerationType,
+                    declaration: `${Array(tabSize * 2).join(' ')} private readonly ${parameterType} ${privateMemberPrefix}${selectedName};\r\n`,
+                    assignment: `${Array(tabSize * 3).join(' ')} ${(prefixWithThis ? 'this.' : '')}${privateMemberPrefix}${selectedName} = ${selectedName};\r\n`
+                };
+                break;
+            case MemberGenerationType.ReadonlyProperty:
+                title = 'Initialize readonly property from parameter...';
 
-            name = selectedName[0].toUpperCase() + selectedName.substr(1);
+                name = selectedName[0].toUpperCase() + selectedName.substr(1);
 
-            memberGeneration = {
-                type: memberGenerationType,
-                declaration: `${Array(tabSize * 2).join(' ')} public ${parameterType} ${name} { get; }\r\n`,
-                assignment: `${Array(tabSize * 3).join(' ')} ${(prefixWithThis ? 'this.' : '')}${name} = ${selectedName};\r\n`
-            };
-            break;
-        case MemberGenerationType.Property:
-            title = 'Initialize property from parameter...';
+                memberGeneration = {
+                    type: memberGenerationType,
+                    declaration: `${Array(tabSize * 2).join(' ')} public ${parameterType} ${name} { get; }\r\n`,
+                    assignment: `${Array(tabSize * 3).join(' ')} ${(prefixWithThis ? 'this.' : '')}${name} = ${selectedName};\r\n`
+                };
+                break;
+            case MemberGenerationType.Property:
+                title = 'Initialize property from parameter...';
 
-            name = selectedName[0].toUpperCase() + selectedName.substr(1);
+                name = selectedName[0].toUpperCase() + selectedName.substr(1);
 
-            memberGeneration = {
-                type: memberGenerationType,
-                declaration: `${Array(tabSize * 2).join(' ')} public ${parameterType} ${name} { get; set; }\r\n`,
-                assignment: `${Array(tabSize * 3).join(' ')} ${(prefixWithThis ? 'this.' : '')}${name} = ${selectedName};\r\n`
-            };
-            break;
-        default:
-            //TODO: Show error?
-            return null;
+                memberGeneration = {
+                    type: memberGenerationType,
+                    declaration: `${Array(tabSize * 2).join(' ')} public ${parameterType} ${name} { get; set; }\r\n`,
+                    assignment: `${Array(tabSize * 3).join(' ')} ${(prefixWithThis ? 'this.' : '')}${name} = ${selectedName};\r\n`
+                };
+                break;
+            default:
+                //TODO: Show error?
+                return null;
         }
 
         const constructorBodyStart = this.findConstructorBodyStart(document, position);
@@ -286,7 +309,7 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
             constructorStart: this.findConstructorStart(document, position)
         };
 
-        const cmd: vscode.Command = {
+        const cmd: Command = {
             title: title,
             command: this._commandIds.initializeMemberFromCtor,
             arguments: [parameter]
@@ -295,18 +318,18 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
         return cmd;
     }
 
-    private findConstructorBodyStart(document: vscode.TextDocument, position: vscode.Position): vscode.Position | null {
+    private findConstructorBodyStart(document: TextDocument, position: Position): Position | null {
         for (let lineNo = position.line; lineNo < position.line + 5; lineNo++) {
             const line = document.lineAt(lineNo);
 
             if (line.text.indexOf('{') !== -1)
-                return new vscode.Position(lineNo + 1, 0);
+                return new Position(lineNo + 1, 0);
         }
 
         return null;
     }
 
-    private findConstructorStart(document: vscode.TextDocument, position: vscode.Position): vscode.Position {
+    private findConstructorStart(document: TextDocument, position: Position): Position {
         const foundClass = this.findClassFromLine(document, position.line);
 
         if (foundClass) {
@@ -314,11 +337,11 @@ export default class CodeActionProvider implements vscode.CodeActionProvider {
                 const line = document.lineAt(lineNo);
 
                 if (line.isEmptyOrWhitespace && !(line.lineNumber < foundClass.startLine))
-                    return new vscode.Position(lineNo, 0);
+                    return new Position(lineNo, 0);
             }
         }
 
-        return new vscode.Position(position.line, 0);
+        return new Position(position.line, 0);
     }
 }
 
@@ -352,16 +375,16 @@ interface CSharpPropertyDefinition {
 }
 
 interface ConstructorFromPropertiesArgument {
-    document: vscode.TextDocument,
+    document: TextDocument,
     classDefinition: CSharpClassDefinition,
     properties: CSharpPropertyDefinition[]
 }
 
 interface InitializeFieldFromConstructor {
-    document: vscode.TextDocument,
+    document: TextDocument,
     type: string,
     name: string,
     memberGeneration: MemberGenerationProperties,
-    constructorBodyStart: vscode.Position,
-    constructorStart: vscode.Position,
+    constructorBodyStart: Position,
+    constructorStart: Position,
 }
