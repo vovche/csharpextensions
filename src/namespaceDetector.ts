@@ -2,7 +2,7 @@ import { Uri, workspace } from 'vscode';
 import * as path from 'path';
 import CsprojReader from './csprojReader';
 import ProjectJsonReader from './projectJsonReader';
-import * as findupglob from 'find-up-glob';
+import findupglob from 'find-up-glob';
 
 export default class NamespaceDetector {
     private readonly filePath: string;
