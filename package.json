@@ -9,7 +9,10 @@
     "engines": {
         "vscode": "^1.56.0"
     },
-    "repository": "https://github.com/kreativjos/csharpextensions",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kreativjos/csharpextensions"
+    },
     "icon": "logo.png",
     "categories": [
         "Programming Languages",
