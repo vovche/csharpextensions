@@ -93,7 +93,7 @@ export default class NamespaceDetector {
 
     private async read(file: Uri): Promise<string> {
         const document = await workspace.openTextDocument(file);
-        
+
         return document.getText();
     }
 
@@ -104,7 +104,7 @@ export default class NamespaceDetector {
         for (let index = rootDirSegments.length; index < filePathSegments.length; index++) {
             fullNamespace += '.' + filePathSegments[index];
         }
-        
+
         return fullNamespace;
     }
 }

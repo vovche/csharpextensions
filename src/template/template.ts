@@ -46,7 +46,7 @@ export default abstract class Template {
         return await namespaceDetector.getNamespace();
     }
 
-    protected async _createFile(templatePath: string, filePath: string, filename: string) {
+    protected async _createFile(templatePath: string, filePath: string, filename: string): Promise<void> {
         try {
             const doc = await fs.readFile(templatePath, 'utf-8');
             const namespace = await this.getNamespace(filePath);

@@ -32,7 +32,7 @@ export function activate(context: vscode.ExtensionContext): void {
 export function deactivate(): void { /* Nothing to do here */ }
 
 export class Extension {
-    private constructor() { }
+    private constructor() { /**/ }
 
     private _getIncomingPath(args: any): string | undefined {
         if (args) {
@@ -75,8 +75,7 @@ export class Extension {
 
             if (newFilename.endsWith('.cs')) newFilename = newFilename.substring(0, newFilename.length - 3);
 
-            let pathWithoutExtension = `${incomingPath}${path.sep}${newFilename}`;
-
+            const pathWithoutExtension = `${incomingPath}${path.sep}${newFilename}`;
             const existingFiles = await template.getExistingFiles(pathWithoutExtension);
 
             if (existingFiles.length) {
@@ -104,7 +103,7 @@ export class Extension {
         'jsw.csharpextensions'
     ];
 
-    public static GetInstance() {
+    public static GetInstance(): Extension {
         if (!this.Instance) {
             this.Instance = new Extension();
         }
