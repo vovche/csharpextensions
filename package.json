@@ -4,7 +4,7 @@
     "description": "C# IDE Extensions for VSCode",
     "author": "KreativJos",
     "license": "MIT",
-    "version": "1.5.1",
+    "version": "1.5.2",
     "publisher": "kreativ-software",
     "engines": {
         "vscode": "^1.56.0"
@@ -157,7 +157,11 @@
         }
     },
     "scripts": {
-        "vscode:prepublish": "yarn run compile",
+        "vscode:prepublish": "npm run esbuild-base -- --minify",
+        "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+        "esbuild": "npm run esbuild-base -- --sourcemap",
+        "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+        "test-compile": "tsc -p ./",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "pretest": "yarn run compile && yarn run lint",
@@ -173,6 +177,7 @@
         "@types/xml2js": "^0.4.9",
         "@typescript-eslint/eslint-plugin": "^4.28.5",
         "@typescript-eslint/parser": "^4.28.5",
+        "esbuild": "^0.13.8",
         "eslint": "^7.19.0",
         "glob": "^7.1.6",
         "mocha": "^8.2.1",
