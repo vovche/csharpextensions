@@ -1,9 +1,8 @@
 import * as path from 'path';
-import * as util from 'util';
 import { promises as fs } from 'fs';
 
-const findUpGlob = require('find-up-glob');
-const xml2js = require("xml2js");
+import * as findupglob from 'find-up-glob';
+import { Builder, Parser } from 'xml2js';
 
 export enum BuildActions {
     Folder = 'Folder',
@@ -17,76 +16,71 @@ export enum BuildActions {
 
 export class CsprojWriter {
     public async getProjFilePath(filePath: string): Promise<string | undefined> {
-        const projItems: string[] = await findUpGlob('*.projitems', { cwd: path.dirname(filePath) });
-        const csProj: string[] = await findUpGlob('*.csproj', { cwd: path.dirname(filePath) });
+        const projItems: string[] = await findupglob('*.projitems', { cwd: path.dirname(filePath) });
+        const csProj: string[] = await findupglob('*.csproj', { cwd: path.dirname(filePath) });
 
         if (projItems !== null && projItems.length >= 1) return projItems[0];
         else if (csProj !== null && csProj.length >= 1) return csProj[0];
 
-        return undefined;
+        return;
     }
 
     public async add(projPath: string, itemPaths: string[], itemType: BuildActions) {
-        let paths: Array<string> = [];
+        const paths: Array<string> = [];
 
-        for (let itemPath of itemPaths) {
-            let path = this.fixItemPath(projPath, itemPath);
+        for (const itemPath of itemPaths) {
+            const path = this.fixItemPath(projPath, itemPath);
+            const buildAction = await this.get(projPath, path);
 
             paths.push(path);
-
-            let buildAction = await this.get(projPath, path);
 
             if (buildAction !== undefined) await this.remove(projPath, path);
         }
 
-        let parsedXml = await this.parseProjFile(projPath);
+        const parsedXml = await this.parseProjFile(projPath);
 
-        if (parsedXml === undefined) return;
+        if (!parsedXml) return;
 
-        let items: Array<Object> = Object(parsedXml).Project.ItemGroup;
+        let items: Array<any> = parsedXml.Project.ItemGroup;
 
         if (!items) {
-            items = Object(parsedXml).Project.ItemGroup = [];
+            items = parsedXml.Project.ItemGroup = [];
         }
 
-        const obj = function (includePath: string) {
-            return {
+        for (const includePath of paths) {
+            const item: any = {
                 [itemType]: {
                     $: {
                         'Include': includePath
                     }
                 }
             };
-        };
-
-        for (let includePath of paths) {
-            const item = obj(includePath);
             const itemGroup = this.getItemGroupByPath(items, includePath);
 
             if (itemType === BuildActions.Compile && includePath.endsWith('.xaml.cs')) {
-                let pagePath = includePath.replace('.cs', '');
-                let pageBuildAction = await this.get(projPath, pagePath);
+                const pagePath = includePath.replace('.cs', '');
+                const pageBuildAction = await this.get(projPath, pagePath);
 
-                if (pageBuildAction === BuildActions.Page) Object(item[itemType]).DependentUpon = path.basename(pagePath);
+                if (pageBuildAction === BuildActions.Page) item[itemType].DependentUpon = path.basename(pagePath);
             } else if (itemType === BuildActions.Page) {
-                Object(item[itemType]).SubType = 'Designer';
-                Object(item[itemType]).Generator = 'MSBuild:Compile';
+                item[itemType].SubType = 'Designer';
+                item[itemType].Generator = 'MSBuild:Compile';
             }
 
-            if (itemGroup != undefined) {
-                let actions: Array<Object> | undefined = Object(itemGroup)[itemType];
+            if (itemGroup) {
+                const actions: Array<any> | undefined = itemGroup[itemType];
 
-                if (actions == undefined) {
-                    let array: Array<Object> = [];
+                if (actions) {
+                    actions.push(item[itemType]);
+                } else {
+                    const array: Array<any> = [];
 
                     array[0] = item[itemType];
 
-                    Object(itemGroup)[itemType] = array;
-                } else {
-                    actions.push(Object(item[itemType]));
+                    itemGroup[itemType] = array;
                 }
             } else {
-                let array: Array<Object> = [];
+                const array: Array<any> = [];
 
                 array[0] = item[itemType];
 
@@ -94,25 +88,25 @@ export class CsprojWriter {
             }
         }
 
-        await fs.writeFile(projPath, new xml2js.Builder().buildObject(parsedXml));
+        await fs.writeFile(projPath, new Builder().buildObject(parsedXml));
     }
 
     public async get(projPath: string, itemPath: string): Promise<BuildActions | undefined> {
         itemPath = this.fixItemPath(projPath, itemPath);
 
-        let parsedXml = await this.parseProjFile(projPath);
+        const parsedXml = await this.parseProjFile(projPath);
 
-        if (parsedXml === undefined) return;
+        if (!parsedXml) return;
 
-        let items: Array<Object> = Object(parsedXml).Project.ItemGroup;
+        const items: Array<any> = parsedXml.Project.ItemGroup;
 
         if (items) {
-            for (let item of items) {
-                let actions: Array<Object> = Object.keys(item).map(key => Object(item)[key])[0];
+            for (const item of items) {
+                const actions = Object.values(item)[0] as Array<any>;
 
                 if (actions) {
-                    for (let action of actions) {
-                        if (Object(action)["$"].Include === itemPath) {
+                    for (const action of actions) {
+                        if (action.$.Include  === itemPath) {
                             return BuildActions[Object.getOwnPropertyNames(item)[0] as keyof typeof BuildActions];
                         }
                     }
@@ -120,34 +114,32 @@ export class CsprojWriter {
             }
         }
 
-        return undefined;
+        return;
     }
 
-    public async remove(projPath: string, itemPath: string) {
+    public async remove(projPath: string, itemPath: string): Promise<void> {
         let isDir = false;
 
         try {
-            let fileStat = await fs.lstat(itemPath);
+            const fileStat = await fs.lstat(itemPath);
 
             isDir = fileStat.isDirectory();
         } catch { }
 
         itemPath = this.fixItemPath(projPath, itemPath);
 
-        let parsedXml = await this.parseProjFile(projPath);
+        const parsedXml = await this.parseProjFile(projPath);
 
-        if (parsedXml === undefined) return;
+        if (!parsedXml) return;
 
-        let items: Array<Object> = Object(parsedXml).Project.ItemGroup;
+        const items: Array<any> = parsedXml.Project.ItemGroup;
 
-        for (let item of items) {
-            let actionsArray: Array<Array<Object>> = Object.keys(item).map(key => Object(item)[key]);
+        for (const item of items) {
+            const actionsArray = Object.values(item) as Array<Array<any>>;
 
-            for (let index = 0; index < actionsArray.length; index++) {
-                let actions = actionsArray[index];
-
-                for (let action = 0; action < actions.length; action++) {
-                    let include: string = Object(actions[action])["$"].Include;
+            for (const actions of actionsArray) {
+                for (const action of actions) {
+                    const include = action.$.Include;
 
                     if (include === itemPath || (isDir && include.startsWith(itemPath))) {
                         actions.splice(action, 1);
@@ -160,14 +152,14 @@ export class CsprojWriter {
             if (actionsArray.length === 0) items.splice(items.indexOf(item), 1);
         }
 
-        await fs.writeFile(projPath, new xml2js.Builder().buildObject(parsedXml));
+        await fs.writeFile(projPath, new Builder().buildObject(parsedXml));
     }
 
-    public async rename(projPath: string, oldItemPath: string, newItemPath: string) {
+    public async rename(projPath: string, oldItemPath: string, newItemPath: string): Promise<void> {
         let isDir = false;
 
         try {
-            let fileStat = await fs.lstat(oldItemPath);
+            const fileStat = await fs.lstat(oldItemPath);
 
             isDir = fileStat.isDirectory();
         } catch { }
@@ -175,65 +167,61 @@ export class CsprojWriter {
         oldItemPath = this.fixItemPath(projPath, oldItemPath);
         newItemPath = this.fixItemPath(projPath, newItemPath);
 
-        let parsedXml = await this.parseProjFile(projPath);
+        const parsedXml = await this.parseProjFile(projPath);
 
         if (parsedXml === undefined) return;
 
-        let items: Array<Object> = Object(parsedXml).Project.ItemGroup;
+        const items: Array<any> = parsedXml.Project.ItemGroup;
 
-        for (let item of items) {
-            let actionsArray: Array<Array<Object>> = Object.keys(item).map(key => Object(item)[key]);
+        for (const item of items) {
+            const actionsArray = Object.values(item) as Array<Array<any>>;
 
-            for (let index = 0; index < actionsArray.length; index++) {
-                let actions = actionsArray[index];
-
-                for (let action = 0; action < actions.length; action++) {
-                    let include: string = Object(actions[action])["$"].Include;
+            for (const actions of actionsArray) {
+                for (const action of actions) {
+                    const include = action.$.Include;
 
                     if (include === oldItemPath) {
-                        Object(actions[action])["$"].Include = newItemPath;
+                        action.$.Include = newItemPath;
                     } else if (isDir && include.startsWith(oldItemPath)) {
-                        Object(actions[action])["$"].Include = include.replace(oldItemPath, newItemPath);
+                        action.$.Include = include.replace(oldItemPath, newItemPath);
                     }
                 }
             }
         }
 
-        await fs.writeFile(projPath, new xml2js.Builder().buildObject(parsedXml));
+        await fs.writeFile(projPath, new Builder().buildObject(parsedXml));
     }
 
-    private async parseProjFile(projPath: string): Promise<Object | undefined> {
+    private async parseProjFile(projPath: string): Promise<any | undefined> {
         const xml = await fs.readFile(projPath, 'utf8');
-        const xmlParser = util.promisify(new xml2js.Parser().parseString);
+        const xmlParser = new Parser();
+        const parsedXml = await xmlParser.parseStringPromise(xml);
 
-        let parsedXml = await xmlParser(xml);
-
-        if (parsedXml === undefined || parsedXml.Project === undefined) return undefined;
+        if (!parsedXml || !parsedXml.Project) return;
 
         return parsedXml;
     }
 
-    private getItemGroupByPath(itemGroups: Array<Object>, itemPath: string): Object | undefined {
-        for (let item of itemGroups) {
-            let actionsArray: Array<Array<Object>> = Object.keys(item).map(key => Object(item)[key]);
+    private getItemGroupByPath(itemGroups: Array<any>, itemPath: string): any | undefined {
+        for (const itemGroup of itemGroups) {
+            const actionsArray = Object.values(itemGroup) as Array<Array<any>>;
 
-            for (let index = 0; index < actionsArray.length; index++) {
-                let actions = actionsArray[index];
-
-                for (let action = 0; action < actions.length; action++) {
-                    let include: string = Object(actions[action])["$"].Include;
-
-                    if (path.dirname(include) === path.dirname(itemPath)) {
-                        return Object(item);
+            for (const actions of actionsArray) {
+                for (const action of actions) {
+                    if (path.dirname(action.$.Include) === path.dirname(itemPath)) {
+                        return itemGroup;
                     }
                 }
             }
         }
 
-        return undefined;
+        return;
     }
 
     private fixItemPath(projPath: string, itemPath: string): string {
-        return itemPath.replace(path.dirname(projPath) + path.sep, path.extname(projPath) == '.projitems' ? "$(MSBuildThisFileDirectory)" : "");
+        return itemPath.replace(
+            path.dirname(projPath) + path.sep,
+            path.extname(projPath) === '.projitems' ? '$(MSBuildThisFileDirectory)' : ''
+        );
     }
 }
