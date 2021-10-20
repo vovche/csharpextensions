@@ -1,6 +1,20 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.5.2] - 2021-10-19
+### Fixed
+- Loading speed increased by using webpack & excluding unneeded files from package
+- Code actions throwing errors
+
+## [1.5.1] - 2021-10-18
+### Added
+- Razor page template
+
+## [1.5.0] - 2021-10-17
+### Added
+- UWP templates (Window, Page, UserControl, Resource)
+- Removed '.cs' from filename dialog placeholder
+
 ## [1.4.3] - 2021-09-20
 ### Added
 - New setting for adding default usings - Added by [YoussefWaelMohamedLotfy](https://github.com/YoussefWaelMohamedLotfy)

@@ -1,6 +1,6 @@
 .vscode/**
 .vscode-test/**
-out/test/**
+out/**
 test/**
 src/**
 **/*.map
@@ -12,3 +12,7 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
+featureimages/**
+ovsx.key
+node_modules/**
+publish.sh

@@ -1,9 +1,9 @@
 import Nameable from './nameable';
-import * as xml2js from 'xml2js';
+import { Parser } from 'xml2js';
 
 export default class CsprojReader implements Nameable {
     private readonly xml: string;
-    private readonly xmlParser: any;
+    private readonly xmlParser: Parser;
 
     /**
      * Initializes a new instance for a .csproj
@@ -13,7 +13,7 @@ export default class CsprojReader implements Nameable {
      */
     constructor(fileContent: string) {
         this.xml = fileContent;
-        this.xmlParser = new xml2js.Parser();
+        this.xmlParser = new Parser();
     }
 
     public async getRootNamespace(): Promise<string | undefined> {

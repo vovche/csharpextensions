@@ -4,17 +4,26 @@
     "description": "C# IDE Extensions for VSCode",
     "author": "KreativJos",
     "license": "MIT",
-    "version": "1.4.3",
+    "version": "1.5.2",
     "publisher": "kreativ-software",
     "engines": {
         "vscode": "^1.56.0"
     },
-    "repository": "https://github.com/kreativjos/csharpextensions",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kreativjos/csharpextensions"
+    },
     "icon": "logo.png",
     "categories": [
         "Programming Languages",
         "Linters",
         "Snippets"
+    ],
+    "keywords": [
+        ".NET",
+        "ASP.NET",
+        ".NET Core",
+        "dotnet"
     ],
     "activationEvents": [
         "onLanguage:csharp",
@@ -23,9 +32,14 @@
         "onCommand:csharpextensions.createEnum",
         "onCommand:csharpextensions.createInterface",
         "onCommand:csharpextensions.createController",
-        "onCommand:csharpextensions.createApiController"
+        "onCommand:csharpextensions.createApiController",
+        "onCommand:csharpextensions.createRazorPage",
+        "onCommand:csharpextensions.createUwpPage",
+        "onCommand:csharpextensions.createUwpWindow",
+        "onCommand:csharpextensions.createUwpUserControl",
+        "onCommand:csharpextensions.createUwpResourceFile"
     ],
-    "main": "./out/src/extension",
+    "main": "./dist/extension",
     "contributes": {
         "submenus": [
             {
@@ -57,6 +71,26 @@
             {
                 "command": "csharpextensions.createApiController",
                 "title": "Api Controller"
+            },
+            {
+                "command": "csharpextensions.createRazorPage",
+                "title": "Razor Page"
+            },
+            {
+                "command": "csharpextensions.createUwpPage",
+                "title": "UWP Page"
+            },
+            {
+                "command": "csharpextensions.createUwpWindow",
+                "title": "UWP Window"
+            },
+            {
+                "command": "csharpextensions.createUwpUserControl",
+                "title": "UWP UserControl"
+            },
+            {
+                "command": "csharpextensions.createUwpResourceFile",
+                "title": "UWP Resource File"
             }
         ],
         "menus": {
@@ -80,6 +114,26 @@
                 {
                     "group": "mvc@1",
                     "command": "csharpextensions.createApiController"
+                },
+                {
+                    "group": "mvc@2",
+                    "command": "csharpextensions.createRazorPage"
+                },
+                {
+                    "group": "uwp@0",
+                    "command": "csharpextensions.createUwpPage"
+                },
+                {
+                    "group": "uwp@1",
+                    "command": "csharpextensions.createUwpWindow"
+                },
+                {
+                    "group": "uwp@2",
+                    "command": "csharpextensions.createUwpUserControl"
+                },
+                {
+                    "group": "uwp@3",
+                    "command": "csharpextensions.createUwpResourceFile"
                 }
             ],
             "explorer/context": [
@@ -122,15 +176,15 @@
         }
     },
     "scripts": {
-        "vscode:prepublish": "yarn run compile",
-        "compile": "tsc -p ./",
+        "vscode:prepublish": "tsc -p ./ && webpack --mode production",
+        "compile": "tsc -p ./ && yarn run lint",
+        "compileDev": "tsc -p ./ && yarn run lint && webpack --mode development",
         "watch": "tsc -watch -p ./",
-        "pretest": "yarn run compile && yarn run lint",
-        "lint": "eslint src --ext ts",
-        "test": "node ./out/test/runTest.js"
+        "lint": "eslint src --ext ts"
     },
     "devDependencies": {
         "@types/glob": "^7.1.3",
+        "@types/lodash": "^4.14.175",
         "@types/mocha": "^8.0.4",
         "@types/node": "^12.11.7",
         "@types/vscode": "^1.56.0",
@@ -140,11 +194,15 @@
         "eslint": "^7.19.0",
         "glob": "^7.1.6",
         "mocha": "^8.2.1",
+        "ts-loader": "^9.2.6",
         "typescript": "^4.1.3",
-        "vscode-test": "^1.5.0"
+        "vscode-test": "^1.5.0",
+        "webpack": "^5.58.2",
+        "webpack-cli": "^4.9.1"
     },
     "dependencies": {
         "find-up-glob": "^1.0.0",
+        "lodash": "^4.7.0",
         "xml2js": "^0.4.23"
     }
 }
