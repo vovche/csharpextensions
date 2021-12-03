@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.5.3] - 2021-12-03
+### Fixed
+- Razor page generating to .cshtml
+
 ## [1.5.2] - 2021-10-19
 ### Fixed
 - Loading speed increased by using webpack & excluding unneeded files from package
