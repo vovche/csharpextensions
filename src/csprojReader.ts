@@ -23,7 +23,7 @@ export default class CsprojReader implements Nameable {
             if (result === undefined
                 || result.Project.PropertyGroup === undefined
                 || !result.Project.PropertyGroup.length) {
-                return undefined;
+                return;
             }
 
             let foundNamespace = undefined;
@@ -40,6 +40,6 @@ export default class CsprojReader implements Nameable {
             console.error('Error parsing project xml', errParsingXml);
         }
 
-        return undefined;
+        return;
     }
 }

@@ -29,7 +29,7 @@ export default class NamespaceDetector {
         const csprojs: string[] = await findupglob('*.csproj', { cwd: path.dirname(this.filePath) });
 
         if (csprojs === null || csprojs.length < 1) {
-            return undefined;
+            return;
         }
 
         const csprojFile = csprojs[0];
@@ -38,7 +38,7 @@ export default class NamespaceDetector {
         const rootNamespace = await projectReader.getRootNamespace();
 
         if (rootNamespace === undefined) {
-            return undefined;
+            return;
         }
 
         return this.calculateFullNamespace(rootNamespace, path.dirname(csprojFile));
@@ -48,7 +48,7 @@ export default class NamespaceDetector {
         const jsonFiles: string[] = await findupglob('project.json', { cwd: path.dirname(this.filePath) });
 
         if (jsonFiles === null || jsonFiles.length < 1) {
-            return undefined;
+            return;
         }
 
         const projectJsonFile = jsonFiles[0];
@@ -58,7 +58,7 @@ export default class NamespaceDetector {
         const rootNamespace = await projectReader.getRootNamespace();
 
         if (rootNamespace === undefined) {
-            return undefined;
+            return;
         }
 
         return this.calculateFullNamespace(rootNamespace, projectJsonDir);
