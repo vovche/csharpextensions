@@ -171,6 +171,7 @@
         "compileDev": "tsc -p ./ && yarn run lint && webpack --mode development",
         "watch": "tsc -watch -p ./",
         "lint": "eslint src --ext ts",
+        "package": "vsce package --yarn",
         "publish": "vsce publish --yarn"
     },
     "devDependencies": {
