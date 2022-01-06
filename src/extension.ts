@@ -15,8 +15,12 @@ export function activate(context: vscode.ExtensionContext): void {
     const extension = Extension.GetInstance();
 
     Extension.GetKnownTemplates().forEach(template => {
-        context.subscriptions.push(vscode.commands.registerCommand(template.getCommand(),
-            async (args: any) => await extension.createFromTemplate(args, template)));
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                template.getCommand(),
+                async (options: RegisterCommandCallbackArgument) => await extension.createFromTemplate(options, template)
+            )
+        );
     });
 
     const documentSelector: vscode.DocumentSelector = {
@@ -34,17 +38,17 @@ export function deactivate(): void { /* Nothing to do here */ }
 export class Extension {
     private constructor() { /**/ }
 
-    private _getIncomingPath(args: any): string | undefined {
-        if (args) {
-            return args._fsPath || args.fsPath || args.path;
+    private _getIncomingPath(options: RegisterCommandCallbackArgument): string | undefined {
+        if (options) {
+            return options._fsPath || options.fsPath || options.path;
         }
 
         return vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length
             ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
     }
 
-    public async createFromTemplate(args: any, template: Template): Promise<void> {
-        const incomingPath = this._getIncomingPath(args);
+    public async createFromTemplate(options: RegisterCommandCallbackArgument, template: Template): Promise<void> {
+        const incomingPath = this._getIncomingPath(options);
 
         if (!incomingPath) {
             vscode.window.showErrorMessage(`Could not find the path for this action.${EOL}If this problem persists, please create an issue in the github repository.`);
@@ -96,6 +100,7 @@ export class Extension {
 
     private static TemplatesPath = 'templates';
     private static KnownTemplates: Map<string, Template>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private static CurrentVscodeExtension: vscode.Extension<any> | undefined = undefined;
     private static Instance: Extension;
     private static KnownExtensionNames = [
@@ -111,6 +116,7 @@ export class Extension {
         return this.Instance;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private static GetCurrentVscodeExtension(): vscode.Extension<any> | undefined {
         if (!this.CurrentVscodeExtension) {
             for (let i = 0; i < this.KnownExtensionNames.length; i++) {
@@ -153,4 +159,10 @@ export class Extension {
 
         return this.KnownTemplates;
     }
+}
+
+interface RegisterCommandCallbackArgument {
+    _fsPath: string,
+    fsPath: string,
+    path: string,
 }
