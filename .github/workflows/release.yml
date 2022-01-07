@@ -5,6 +5,10 @@ on:
     branches:
     - feature/automatedBuilds
 
+env:
+  NODE_VERSION: '16'
+  EXTENSION_OUTPUT_FILE: 'csharpextensions.vsix'
+
 jobs:
   prepare:
     name: Prepare
@@ -12,7 +16,7 @@ jobs:
     steps:
     - uses: DerYeger/yarn-setup-action@master
       with:
-        node-version: 16
+        node-version: ${{ env.NODE_VERSION }}
 
   lint:
     name: Lint
@@ -21,7 +25,7 @@ jobs:
     steps:
     - uses: DerYeger/yarn-setup-action@master
       with:
-        node-version: 16
+        node-version: ${{ env.NODE_VERSION }}
     - run: yarn lint
 
   package:
@@ -31,5 +35,13 @@ jobs:
     steps:
     - uses: DerYeger/yarn-setup-action@master
       with:
-        node-version: 16
-    - run: yarn publish
+        node-version: ${{ env.NODE_VERSION }}
+    - name: Yarn package
+      run: yarn package -o ${{ env.EXTENSION_OUTPUT_FILE }}
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.EXTENSION_OUTPUT_FILE }}
+        path: ${{ env.EXTENSION_OUTPUT_FILE }}
+        retention-days: 30
