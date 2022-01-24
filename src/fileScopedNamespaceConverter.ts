@@ -17,7 +17,7 @@ export class FileScopedNamespaceConverter {
      */
 
     public async getFileScopedNamespaceFormOfTemplateIfNecessary(template: string, filePath: string): Promise<string> {
-        const useFileScopedNamespace = 
+        const useFileScopedNamespace =
             workspace.getConfiguration().get<boolean>('csharpextensions.useFileScopedNamespace', false) &&
             filePath.endsWith('.cs') &&
             await this.targetFrameworkHigherThanOrEqualToDotNet6(filePath);
@@ -33,7 +33,7 @@ export class FileScopedNamespaceConverter {
         }
 
         const csprojFile = csprojs[0];
-        const csprojDocument =  await workspace.openTextDocument(Uri.file(csprojFile))
+        const csprojDocument = await workspace.openTextDocument(Uri.file(csprojFile));
         const fileContent = csprojDocument.getText();
         const projectReader = new CsprojReader(fileContent);
         const targetFramework = await projectReader.getTargetFramework();
@@ -41,7 +41,7 @@ export class FileScopedNamespaceConverter {
         if (targetFramework === undefined) {
             return false;
         }
-        
+
         const versionString = targetFramework.match(/(?<=net)\d+(\.\d+)*/i); // Match .NET version string like "net6.0"
 
         if (versionString === null) {
