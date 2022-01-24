@@ -42,4 +42,31 @@ export default class CsprojReader implements Nameable {
 
         return;
     }
+
+    public async getTargetFramework(): Promise<string | undefined> {
+        try {
+            const result = await this.xmlParser.parseStringPromise(this.xml);
+
+            if (result === undefined
+                || result.Project.PropertyGroup === undefined
+                || !result.Project.PropertyGroup.length) {
+                return;
+            }
+
+            let foundFramework = undefined;
+
+            for (const propertyGroup of result.Project.PropertyGroup) {
+                if (propertyGroup.TargetFramework) {
+                    foundFramework = propertyGroup.TargetFramework[0];
+                    break;
+                }
+            }
+
+            return foundFramework;
+        } catch (errParsingXml) {
+            console.error('Error parsing project xml', errParsingXml);
+        }
+
+        return;
+    }
 }

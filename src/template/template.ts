@@ -6,6 +6,7 @@ import * as path from 'path';
 import { sortBy, uniq } from 'lodash';
 
 import NamespaceDetector from '../namespaceDetector';
+import fileScopedNamespaceConverter from '../fileScopedNamespaceConverter';
 
 export default abstract class Template {
     private _name: string;
@@ -51,7 +52,11 @@ export default abstract class Template {
             const doc = await fs.readFile(templatePath, 'utf-8');
             const namespace = await this.getNamespace(filePath);
 
-            let text = doc
+            let text = doc;
+
+            text = await fileScopedNamespaceConverter.getFileScopedNamespaceFormOfTemplateIfNecessary(text, filePath);
+
+            text = text
                 .replace(Template.NamespaceRegex, namespace)
                 .replace(Template.ClassnameRegex, filename)
                 .replace('${namespaces}', this.getUsings());
