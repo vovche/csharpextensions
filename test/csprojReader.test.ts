@@ -1,5 +1,5 @@
 import * as assert from "assert";
-import CsprojReader from "../src/csprojReader";
+import CsprojReader from "../src/project/csprojReader";
 
 describe("CsprojReader", () => {
     it("getNamespace for valid csproj file with RootNamespace attribute in the first PropertyGroup should return Xamarin.Forms", () => {

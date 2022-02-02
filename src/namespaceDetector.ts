@@ -1,8 +1,10 @@
-import { Uri, workspace } from 'vscode';
 import * as path from 'path';
-import CsprojReader from './csprojReader';
-import ProjectJsonReader from './projectJsonReader';
-import * as findupglob from 'find-up-glob';
+
+import { workspace } from 'vscode';
+
+import CsprojReader from './project/csprojReader';
+import ProjectJsonReader from './project/projectJsonReader';
+import ProjectReader from './project/projectReader';
 
 export default class NamespaceDetector {
     private readonly filePath: string;
@@ -13,72 +15,45 @@ export default class NamespaceDetector {
 
     public async getNamespace(): Promise<string> {
         let fullNamespace = await this.fromCsproj();
-        if (fullNamespace !== undefined) {
-            return fullNamespace;
-        }
+
+        if (fullNamespace) return fullNamespace;
 
         fullNamespace = await this.fromProjectJson();
-        if (fullNamespace !== undefined) {
-            return fullNamespace;
-        }
+
+        if (fullNamespace) return fullNamespace;
 
         return await this.fromFilepath();
     }
 
     private async fromCsproj(): Promise<string | undefined> {
-        const csprojs: string[] = await findupglob('*.csproj', { cwd: path.dirname(this.filePath) });
+        const csprojReader = await CsprojReader.createFromPath(this.filePath);
 
-        if (csprojs === null || csprojs.length < 1) {
-            return;
-        }
-
-        const csprojFile = csprojs[0];
-        const fileContent = await this.read(Uri.file(csprojFile));
-        const projectReader = new CsprojReader(fileContent);
-        const rootNamespace = await projectReader.getRootNamespace();
-
-        if (rootNamespace === undefined) {
-            return;
-        }
-
-        return this.calculateFullNamespace(rootNamespace, path.dirname(csprojFile));
+        return await this.getRootNamespace(csprojReader);
     }
 
     private async fromProjectJson(): Promise<string | undefined> {
-        const jsonFiles: string[] = await findupglob('project.json', { cwd: path.dirname(this.filePath) });
+        const projectJsonReader = await ProjectJsonReader.createFromPath(this.filePath);
 
-        if (jsonFiles === null || jsonFiles.length < 1) {
-            return;
-        }
+        return await this.getRootNamespace(projectJsonReader);
+    }
 
-        const projectJsonFile = jsonFiles[0];
-        const projectJsonDir = path.dirname(projectJsonFile);
-        const fileContent = await this.read(Uri.file(projectJsonFile));
-        const projectReader = new ProjectJsonReader(fileContent);
+    private async getRootNamespace(projectReader: ProjectReader | undefined): Promise<string | undefined> {
+        if (!projectReader) return;
+
         const rootNamespace = await projectReader.getRootNamespace();
 
-        if (rootNamespace === undefined) {
-            return;
-        }
+        if (!rootNamespace) return;
 
-        return this.calculateFullNamespace(rootNamespace, projectJsonDir);
+        return this.calculateFullNamespace(rootNamespace, path.dirname(projectReader.getFilePath()));
     }
 
     private async getRootPath(): Promise<string> {
-        const csprojs: string[] = await findupglob('*.csproj', { cwd: path.dirname(this.filePath) });
+        const projectPath = await ProjectReader.findProjectPath(this.filePath);
 
-        if (csprojs !== null && csprojs.length >= 1) {
-            const csprojSplit = csprojs[0].split(path.sep);
+        if (projectPath) {
+            const projectPathSplit = projectPath.split(path.sep);
 
-            return csprojSplit.slice(0, csprojSplit.length - 2).join(path.sep);
-        }
-
-        const jsonFiles: string[] = await findupglob('project.json', { cwd: path.dirname(this.filePath) });
-
-        if (jsonFiles !== null && jsonFiles.length >= 1) {
-            const jsonSplit = jsonFiles[0].split(path.sep);
-
-            return jsonSplit.slice(0, jsonSplit.length - 2).join(path.sep);
+            return projectPathSplit.slice(0, projectPathSplit.length - 2).join(path.sep);
         }
 
         return workspace.workspaceFolders && workspace.workspaceFolders.length ? workspace.workspaceFolders[0].uri.fsPath : '';
@@ -91,16 +66,14 @@ export default class NamespaceDetector {
         return namespaceWithLeadingDot.slice(1);
     }
 
-    private async read(file: Uri): Promise<string> {
-        const document = await workspace.openTextDocument(file);
-
-        return document.getText();
-    }
-
     private calculateFullNamespace(rootNamespace: string, rootDirectory: string): string {
         const filePathSegments: string[] = path.dirname(this.filePath).split(path.sep);
         const rootDirSegments: string[] = rootDirectory.split(path.sep);
+        
         let fullNamespace = rootNamespace;
+
+        // Remove rootDirSegments from filePathSegments
+        // Then append filePathSegments to full namespace
         for (let index = rootDirSegments.length; index < filePathSegments.length; index++) {
             fullNamespace += '.' + filePathSegments[index];
         }
