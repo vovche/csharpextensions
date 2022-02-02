@@ -1,5 +1,5 @@
 import * as assert from "assert";
-import ProjectJsonReader from "../src/projectJsonReader";
+import ProjectJsonReader from "../src/project/projectJsonReader";
 
 describe("ProjectJsonReader", () => {
     it("getNamespace for valid project.json with defaultNamespace attribute should return Xamarin.Forms", () => {

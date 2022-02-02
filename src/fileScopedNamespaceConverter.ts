@@ -1,7 +1,5 @@
-import CsprojReader from './csprojReader';
-import { Uri, workspace } from 'vscode';
-import * as path from 'path';
-import * as findupglob from 'find-up-glob';
+import CsprojReader from './project/csprojReader';
+import { workspace } from 'vscode';
 
 export class FileScopedNamespaceConverter {
     /**
@@ -17,40 +15,36 @@ export class FileScopedNamespaceConverter {
      */
 
     public async getFileScopedNamespaceFormOfTemplateIfNecessary(template: string, filePath: string): Promise<string> {
-        const useFileScopedNamespace =
-            workspace.getConfiguration().get<boolean>('csharpextensions.useFileScopedNamespace', false) &&
-            filePath.endsWith('.cs') &&
-            await this.targetFrameworkHigherThanOrEqualToDotNet6(filePath);
+        if (await this.shouldUseFileScopedNamespace(filePath)) {
+            return this.getFileScopedNamespaceFormOfTemplate(template);
+        }
 
-        return useFileScopedNamespace ? this.getFileScopedNamespaceFormOfTemplate(template) : template;
+        return template;
     }
 
-    private async targetFrameworkHigherThanOrEqualToDotNet6(filePath: string): Promise<boolean> {
-        const csprojs: string[] = await findupglob('*.csproj', { cwd: path.dirname(filePath) });
+    /**
+     * If the 'file scoped namespace' feature of .net6+ should be used
+     *
+     * @param filePath The path of the file to check for
+     * @returns If the 'file scoped namespace' feature should be used
+     */
+    private async shouldUseFileScopedNamespace(filePath: string): Promise<boolean> {
+        if (!filePath.endsWith('.cs')) return false;
+        if (!workspace.getConfiguration().get<boolean>('csharpextensions.useFileScopedNamespace', false)) return false;
 
-        if (csprojs === null || csprojs.length < 1) {
-            return false;
-        }
+        return await this.isTargetFrameworkHigherThanOrEqualToDotNet6(filePath);
+    }
 
-        const csprojFile = csprojs[0];
-        const csprojDocument = await workspace.openTextDocument(Uri.file(csprojFile));
-        const fileContent = csprojDocument.getText();
-        const projectReader = new CsprojReader(fileContent);
-        const targetFramework = await projectReader.getTargetFramework();
+    /**
+     * If the target framework of the project containing the file from the given filePath is higher than, or equal to, .net6
+     *
+     * @param filePath The file to check for
+     * @returns If the target framework is higher than or equal to .net6
+     */
+    private async isTargetFrameworkHigherThanOrEqualToDotNet6(filePath: string): Promise<boolean> {
+        const csprojReader = await CsprojReader.createFromPath(filePath);
 
-        if (targetFramework === undefined) {
-            return false;
-        }
-
-        const versionString = targetFramework.match(/(?<=net)\d+(\.\d+)*/i); // Match .NET version string like "net6.0"
-
-        if (versionString === null) {
-            return false;
-        }
-
-        const version = +versionString[0];
-
-        return version >= 6;
+        return !!csprojReader && await csprojReader.isTargetFrameworkHigherThanOrEqualToDotNet6() === true;
     }
 
     /**
