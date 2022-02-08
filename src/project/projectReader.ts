@@ -1,6 +1,8 @@
 import * as path from 'path';
 import * as findupglob from 'find-up-glob';
 
+import ArgumentError from '../argumentError';
+
 export default abstract class ProjectReader {
     protected readonly filePath: string;
 
@@ -10,6 +12,9 @@ export default abstract class ProjectReader {
      * @param filePath The path to the project file
      */
     constructor(filePath: string) {
+        if (!this._getSupportedExtensions().includes(path.extname(filePath)))
+            throw new ArgumentError('filePath');
+
         this.filePath = filePath; //TODO: Check if exists
     }
 
@@ -30,6 +35,13 @@ export default abstract class ProjectReader {
     public abstract getRootNamespace(): Promise<string | undefined>;
 
     /**
+     * Retrieve a list of supported extensions for this project reader
+     *
+     * @returns A list of supported extensions for this project reader
+     */
+    protected abstract _getSupportedExtensions(): Array<string>;
+
+    /**
      * Tries to create a new project reader from the given path, searched upwards, with the given file patterns to match
      *
      * @param this The class on which this function is executed, from which a new instance should be created
@@ -37,12 +49,12 @@ export default abstract class ProjectReader {
      * @param filePatterns The file patterns to match with
      * @returns A new project reader if a file is found, or undefined
      */
-    protected static async createProjectFromPath<T extends ProjectReader>(
+    protected static async CreateProjectFromPath<T extends ProjectReader>(
         this: new (filePath: string) => T,
         findFromPath: string,
         ...filePatterns: Array<string>
     ): Promise<T | undefined> {
-        const projectPath = await ProjectReader.findProjectPath(findFromPath, ...filePatterns);
+        const projectPath = await ProjectReader.FindProjectPath(findFromPath, ...filePatterns);
 
         return projectPath ? new this(projectPath) : undefined;
     }
@@ -54,7 +66,7 @@ export default abstract class ProjectReader {
      * @param filePatterns The file patterns to search with
      * @returns The found path, or undefined
      */
-    public static async findProjectPath(fromPath: string, ...filePatterns: Array<string>): Promise<string | undefined> {
+    public static async FindProjectPath(fromPath: string, ...filePatterns: Array<string>): Promise<string | undefined> {
         if (!filePatterns?.length) return;
 
         const filePattern = filePatterns[0];
@@ -62,6 +74,6 @@ export default abstract class ProjectReader {
 
         if (projectPaths?.length) return projectPaths[0];
 
-        return await this.findProjectPath(fromPath, ...filePatterns.splice(1));
+        return await this.FindProjectPath(fromPath, ...filePatterns.splice(1));
     }
 }

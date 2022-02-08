@@ -42,7 +42,7 @@ export class FileScopedNamespaceConverter {
      * @returns If the target framework is higher than or equal to .net6
      */
     private async isTargetFrameworkHigherThanOrEqualToDotNet6(filePath: string): Promise<boolean> {
-        const csprojReader = await CsprojReader.createFromPath(filePath);
+        const csprojReader = await CsprojReader.CreateReaderFromPath(filePath);
 
         return !!csprojReader && await csprojReader.isTargetFrameworkHigherThanOrEqualToDotNet6() === true;
     }

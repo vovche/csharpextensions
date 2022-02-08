@@ -26,13 +26,13 @@ export default class NamespaceDetector {
     }
 
     private async fromCsproj(): Promise<string | undefined> {
-        const csprojReader = await CsprojReader.createFromPath(this.filePath);
+        const csprojReader = await CsprojReader.CreateReaderFromPath(this.filePath);
 
         return await this.getRootNamespace(csprojReader);
     }
 
     private async fromProjectJson(): Promise<string | undefined> {
-        const projectJsonReader = await ProjectJsonReader.createFromPath(this.filePath);
+        const projectJsonReader = await ProjectJsonReader.CreateReaderFromPath(this.filePath);
 
         return await this.getRootNamespace(projectJsonReader);
     }
@@ -48,7 +48,7 @@ export default class NamespaceDetector {
     }
 
     private async getRootPath(): Promise<string> {
-        const projectPath = await ProjectReader.findProjectPath(this.filePath);
+        const projectPath = await ProjectReader.FindProjectPath(this.filePath);
 
         if (projectPath) {
             const projectPathSplit = projectPath.split(path.sep);

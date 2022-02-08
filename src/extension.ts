@@ -1,27 +1,29 @@
 import * as vscode from 'vscode';
 
-import { promises as fs } from 'fs';
 import * as path from 'path';
 import { EOL } from 'os';
 
-import Template from './template/template';
-import CsTemplate from './template/csTemplate';
-import CshtmlTemplate from './template/cshtmlTemplate';
-import ReswTemplate from './template/reswTemplate';
-import XamlTemplate from './template/xamlTemplate';
 import CodeActionProvider from './codeActionProvider';
-import { CsprojWriter, BuildActions } from './csprojWriter';
+import { isExistingDirectory } from './pathHelpers';
+import BuildActions from './project/buildActions';
+import CsprojWriter from './project/csprojWriter';
+import CshtmlTemplate from './template/cshtmlTemplate';
+import CsTemplate from './template/csTemplate';
+import ReswTemplate from './template/reswTemplate';
+import Template from './template/template';
+import XamlTemplate from './template/xamlTemplate';
+
 
 
 export function activate(context: vscode.ExtensionContext): void {
     const extension = Extension.GetInstance();
 
     context.subscriptions.push(vscode.commands.registerCommand('csharpextensions.changeBuildAction',
-        async (args: any) => await extension.changeBuildAction(args)));
+        async (args: VscodeCommandArgs) => await extension.changeBuildAction(args)));
 
     Extension.GetKnownTemplates().forEach(template => {
         context.subscriptions.push(vscode.commands.registerCommand(template.getCommand(),
-            async (args: any) => await extension.createFromTemplate(args, template)));
+            async (args: VscodeCommandArgs) => await extension.createFromTemplate(args, template)));
     });
 
     const documentSelector: vscode.DocumentSelector = {
@@ -64,12 +66,13 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.workspace.onDidRenameFiles(extension.onRenameFiles);
 }
 
-export function deactivate(): void { /* Nothing to do here */ }
+export function deactivate(): void { /* Nothing to do here */ } //TODO: Remove watchers?
 
 export class Extension {
+    private static HasShownFolderWarning = false;
     private constructor() { /**/ }
 
-    private _getIncomingPath(args: any): string | undefined {
+    private _getIncomingPath(args: VscodeCommandArgs): string | undefined {
         if (args) {
             return args._fsPath || args.fsPath || args.path;
         }
@@ -78,7 +81,7 @@ export class Extension {
             ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
     }
 
-    public async createFromTemplate(args: any, template: Template): Promise<void> {
+    public async createFromTemplate(args: VscodeCommandArgs, template: Template): Promise<void> {
         const incomingPath = this._getIncomingPath(args);
 
         if (!incomingPath) {
@@ -108,7 +111,8 @@ export class Extension {
                 return;
             }
 
-            if (newFilename.endsWith('.cs')) newFilename = newFilename.substring(0, newFilename.length - 3);
+            if (newFilename.endsWith('.cs'))
+                newFilename = newFilename.substring(0, newFilename.length - 3);
 
             const pathWithoutExtension = `${incomingPath}${path.sep}${newFilename}`;
             const existingFiles = await template.getExistingFiles(pathWithoutExtension);
@@ -135,97 +139,105 @@ export class Extension {
         return input === undefined ? undefined : input === 'Yes';
     }
 
+    private async _isPerFileAction(itemCount: number): Promise<boolean | undefined> {
+        if (itemCount > 1)
+            return await this._yesNoPickAsync('Would you like to select the build action for each file individually?');
+
+        return false;
+    }
+
+    private _showFolderWarning() {
+        if (!Extension.HasShownFolderWarning) {
+            vscode.window.showWarningMessage('Changing folder build actions currently isn\'t supported');
+
+            Extension.HasShownFolderWarning = true;
+        }
+    }
+
     public async onCreateFiles(event: vscode.FileCreateEvent): Promise<void> {
-        const csproj = new CsprojWriter();
-        const files: string[] = [];
-        const projs: string[] = [];
+        const filePaths: string[] = [];
+        const projectPaths: string[] = [];
 
-        for (let i = 0; i < event.files.length; i++) {
-            const file = event.files[i];
-            const proj = await csproj.getProjFilePath(file.fsPath);
-            const fileStat = await fs.lstat(file.fsPath);
+        for (const fileUri of event.files) {
+            if (await isExistingDirectory(fileUri.fsPath)) {
+                const csprojWriter = await CsprojWriter.CreateWriterFromPath(fileUri.fsPath, true);
 
-            if (proj !== undefined && !fileStat.isDirectory()) {
-                const alreadyInProj = await csproj.get(proj, file.fsPath) !== undefined;
-
-                if (!alreadyInProj) {
-                    files.push(file.fsPath);
-                    projs.push(proj);
+                if (csprojWriter && !await csprojWriter.hasBuildActionsForFile(fileUri.fsPath)) {
+                    filePaths.push(fileUri.fsPath);
+                    projectPaths.push(csprojWriter.getFilePath());
                 }
+            } else {
+                this._showFolderWarning();
             }
         }
 
-        if (files.length < 1) return;
+        if (!filePaths.length) return;
 
-        const message = files.length > 1 ? 'You can choose build actions on the newly added files' : 'You can choose a build action on the newly added file';
-        const button = files.length > 1 ? 'Choose build actions' : 'Choose a build action';
+        const message = filePaths.length > 1 ? 'You can choose build actions on the newly added files' : 'You can choose a build action on the newly added file';
+        const button = filePaths.length > 1 ? 'Choose build actions' : 'Choose a build action';
 
-        await vscode.window.showInformationMessage(message, button).then(async event => {
-            if (!event) return;
+        if (!await vscode.window.showInformationMessage(message, button)) return;
 
-            let isPerFileAction: boolean | undefined = false;
+        if (await this._isPerFileAction(filePaths.length)) {
+            for (let i = 0; i < filePaths.length; i++) {
+                const filePath = filePaths[i];
+                const projectPath = projectPaths[i];
+                const buildAction = await this._selectBuildAction(false, path.basename(filePath));
 
-            if (files.length > 1) {
-                isPerFileAction = await this._yesNoPickAsync('Would you like to select the build action for each file individually?');
+                if (buildAction) {
+                    const csprojWriter = new CsprojWriter(projectPath);
 
-                if (isPerFileAction === undefined) return;
-            }
-
-            if (isPerFileAction) {
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    const proj = projs[i];
-                    const buildAction = await this._selectBuildActionAsync(proj, false, path.basename(file));
-
-                    if (buildAction !== undefined) await csproj.add(proj, [file], buildAction);
-                }
-            } else {
-                const uniqueProjs = projs.filter((item, pos, self) => self.indexOf(item) === pos);
-
-                for (let i = 0; i < uniqueProjs.length; i++) {
-                    const proj = uniqueProjs[i];
-                    const buildAction = await this._selectBuildActionAsync(proj, true, '');
-
-                    if (buildAction !== undefined) await csproj.add(proj, files, buildAction);
+                    await csprojWriter.addBuildActionsForFile(filePath, buildAction);
                 }
             }
-        });
+        } else {
+            const uniqueProjectPaths = projectPaths.filter((item, pos, self) => self.indexOf(item) === pos);
+
+            for (const projectPath of uniqueProjectPaths) {
+                const buildAction = await this._selectBuildAction(true, '');
+
+                if (buildAction) {
+                    const csprojWriter = new CsprojWriter(projectPath);
+
+                    await csprojWriter.addBuildActionsForFiles(filePaths, buildAction);
+                }
+            }
+        }
     }
 
     public async onDeleteFiles(event: vscode.FileDeleteEvent): Promise<void> {
-        const csproj = new CsprojWriter();
-        const files = event.files;
+        for (const fileUri of event.files) {
+            const csprojWriter = await CsprojWriter.CreateWriterFromPath(fileUri.fsPath);
 
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const proj = await csproj.getProjFilePath(file.fsPath);
-
-            if (proj !== undefined) await csproj.remove(proj, file.fsPath);
+            if (csprojWriter)
+                await csprojWriter.removeBuildActionsForFile(fileUri.fsPath);
+            //TODO: else warn - csproj not found?
         }
     }
 
     public async onRenameFiles(event: vscode.FileRenameEvent): Promise<void> {
-        const csproj = new CsprojWriter();
-        const files = event.files;
+        for (const renamedFileUris of event.files) {
+            const csprojWriter = await CsprojWriter.CreateWriterFromPath(renamedFileUris.oldUri.fsPath);
 
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const proj = await csproj.getProjFilePath(file.oldUri.fsPath);
-
-            if (proj !== undefined) await csproj.rename(proj, file.oldUri.fsPath, file.newUri.fsPath);
+            if (csprojWriter)
+                await csprojWriter.handleBuildActionsForRenamedFile(renamedFileUris.oldUri.fsPath, renamedFileUris.newUri.fsPath);
+            //TODO: else warn - csproj not found?
         }
     }
 
-    public async changeBuildAction(args: any): Promise<void> {
-        if (!args) return;
-
+    public async changeBuildAction(args: VscodeCommandArgs): Promise<void> {
         //TODO: Add support to change multiple files --> https://github.com/microsoft/vscode/issues/3553 
 
-        const incomingPath: string = args.fsPath || args.path;
-        const isDir = (await fs.lstat(incomingPath)).isDirectory();
+        const incomingPath = this._getIncomingPath(args);
 
-        if (isDir) {
-            vscode.window.showErrorMessage('The folder\'s build action cannot be changed');
+        if (!incomingPath) {
+            vscode.window.showErrorMessage(`Could not find the path for this action.${EOL}If this problem persists, please create an issue in the github repository.`);
+
+            return;
+        }
+
+        if (await isExistingDirectory(incomingPath)) {
+            this._showFolderWarning();
 
             return;
         }
@@ -236,38 +248,43 @@ export class Extension {
             incomingPath.endsWith('.csproj') ||
             incomingPath.endsWith('.user') ||
             incomingPath === 'project.json') {
-            vscode.window.showErrorMessage('The build action of this file cannot be changed');
+            vscode.window.showErrorMessage('The build action of this file type cannot be changed');
 
             return;
         }
 
-        const csproj = new CsprojWriter();
-        const proj = await csproj.getProjFilePath(incomingPath);
+        const csprojWriter = await CsprojWriter.CreateWriterFromPath(incomingPath);
 
-        if (proj !== undefined) {
-            const buildAction = await this._selectBuildActionAsync(proj, false, path.basename(incomingPath));
+        if (!csprojWriter) {
+            vscode.window.showErrorMessage(`Cannot find a project file for path '${incomingPath}'`);
 
-            if (buildAction !== undefined) await csproj.add(proj, [incomingPath], buildAction);
+            return;
         }
+
+        const buildAction = await this._selectBuildAction(false, path.basename(incomingPath));
+
+        if (buildAction)
+            await csprojWriter.addBuildActionsForFile(incomingPath, buildAction);
     }
 
-    private async _selectBuildActionAsync(proj: string, multiple: boolean, name: string): Promise<BuildActions | undefined> {
-        if (proj === undefined) return;
-
+    private async _selectBuildAction(multiple: boolean, name: string): Promise<BuildActions | undefined> {
         const items = Object.keys(BuildActions).filter(key => key !== 'Folder');
         const buildAction = await vscode.window.showQuickPick(
             items,
-            { ignoreFocusOut: true, placeHolder: 'Please select build action for ' + (multiple ? 'files' : '\'' + name + '\'') }
+            {
+                ignoreFocusOut: true,
+                placeHolder: 'Please select build action for ' + (multiple ? 'files' : '\'' + name + '\'')
+            }
         );
 
-        if (buildAction === undefined) return;
+        if (!buildAction) return;
 
         return BuildActions[buildAction as keyof typeof BuildActions];
     }
 
     private static TemplatesPath = 'templates';
     private static KnownTemplates: Map<string, Template>;
-    private static CurrentVscodeExtension: vscode.Extension<any> | undefined = undefined;
+    private static CurrentVscodeExtension: vscode.Extension<Extension> | undefined = undefined;
     private static Instance: Extension;
     private static KnownExtensionNames = [
         'kreativ-software.csharpextensions',
@@ -282,10 +299,10 @@ export class Extension {
         return this.Instance;
     }
 
-    private static GetCurrentVscodeExtension(): vscode.Extension<any> | undefined {
+    private static GetCurrentVscodeExtension(): vscode.Extension<Extension> | undefined {
         if (!this.CurrentVscodeExtension) {
-            for (let i = 0; i < this.KnownExtensionNames.length; i++) {
-                const extension = vscode.extensions.getExtension(this.KnownExtensionNames[i]);
+            for (const extensionName of this.KnownExtensionNames) {
+                const extension = vscode.extensions.getExtension(extensionName);
 
                 if (extension) {
                     this.CurrentVscodeExtension = extension;
@@ -324,4 +341,11 @@ export class Extension {
 
         return this.KnownTemplates;
     }
+}
+
+
+interface VscodeCommandArgs {
+    _fsPath?: string
+    fsPath?: string
+    path?: string
 }
