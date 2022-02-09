@@ -9,5 +9,5 @@ export interface Project {
 export interface PropertyGroup {
     RootNamespace: Array<string> | undefined
     TargetFramework: Array<string> | undefined
-    ImplicitUsings: Array<string> | undefined
+    ImplicitUsings?: Array<string>
 }

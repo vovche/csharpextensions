@@ -5,8 +5,10 @@ import { EOL } from 'os';
 import * as path from 'path';
 import { sortBy, uniq } from 'lodash';
 
+import CsprojReader from '../project/csprojReader';
 import NamespaceDetector from '../namespaceDetector';
 import fileScopedNamespaceConverter from '../fileScopedNamespaceConverter';
+
 
 export default abstract class Template {
     private _name: string;
@@ -47,19 +49,24 @@ export default abstract class Template {
         return await namespaceDetector.getNamespace();
     }
 
+    private async _useImplicitUsings(filePath: string): Promise<boolean> {
+        const csprojReader = await CsprojReader.createFromPath(filePath); // project.json not supported for > .net6
+
+        return await csprojReader?.useImplicitUsings() === true;
+    }
+
     protected async _createFile(templatePath: string, filePath: string, filename: string): Promise<void> {
         try {
             const doc = await fs.readFile(templatePath, 'utf-8');
             const namespace = await this.getNamespace(filePath);
+            const implicitUsings = await this._useImplicitUsings(filePath);
 
-            let text = doc;
-
-            text = await fileScopedNamespaceConverter.getFileScopedNamespaceFormOfTemplateIfNecessary(text, filePath);
+            let text = await fileScopedNamespaceConverter.getFileScopedNamespaceFormOfTemplateIfNecessary(doc, filePath);
 
             text = text
                 .replace(Template.NamespaceRegex, namespace)
                 .replace(Template.ClassnameRegex, filename)
-                .replace('${namespaces}', this.getUsings());
+                .replace('${namespaces}', this._getUsings(implicitUsings));
 
             const cursorPosition = this._findCursorInTemplate(text);
 
@@ -88,17 +95,33 @@ export default abstract class Template {
         return path.join(templatesPath, `${templateName}.tmpl`);
     }
 
-    private getUsings(): string {
+    private static readonly KnownImplicitUsings = [
+        'System',
+        'System.Collections.Generic',
+        'System.IO',
+        'System.Linq',
+        'System.Net.Http',
+        'System.Threading',
+        'System.Threading.Tasks',
+    ];
+
+    private _removeImplicitUsings(usings: string[]): string[] {
+        return usings.filter(using => !Template.KnownImplicitUsings.includes(using));
+    }
+
+    private _getUsings(skipImplicit: boolean): string {
         const includeNamespaces = vscode.workspace.getConfiguration().get('csharpextensions.includeNamespaces', true);
         let usings = this._requiredUsings;
 
         if (includeNamespaces) usings = usings.concat(this.getOptionalUsings());
+        if (skipImplicit) usings = this._removeImplicitUsings(usings);
 
         if (!usings.length) return '';
 
-        const uniqueUsings = uniq(usings);
-        const sortedUsings = sortBy(uniqueUsings, [(using) => !using.startsWith('System'), (using) => using]);
-        const joinedUsings = sortedUsings
+        usings = uniq(usings);
+        usings = sortBy(usings, [(using) => !using.startsWith('System'), (using) => using]);
+
+        const joinedUsings = usings
             .map(using => `using ${using};`)
             .join(EOL);
 
