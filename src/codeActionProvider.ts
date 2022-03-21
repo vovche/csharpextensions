@@ -16,17 +16,15 @@ import {
 } from 'vscode';
 import * as os from 'os';
 
-//TODO: Extract regexps
-
 export default class CodeActionProvider implements VSCodeCodeActionProvider {
     private _commandIds = {
         ctorFromProperties: 'csharpextensions.ctorFromProperties',
         initializeMemberFromCtor: 'csharpextensions.initializeMemberFromCtor',
     };
 
-    private readonly _readonlyRegex = new RegExp(/(public|private|protected)\s(\w+)\s(\w+)\s?{\s?(get;)\s?(private\s)?(set;)?\s?}/g);
-    private readonly _classRegex = new RegExp(/(private|internal|public|protected)\s?(static)?\sclass\s(\w*)/g);
-    private readonly _generalRegex = new RegExp(/(public|private|protected)\s(.*?)\(([\s\S]*?)\)/gi);
+    private static readonly ReadonlyRegex = new RegExp(/(public|private|protected)\s(\w+)\s(\w+)\s?{\s?(get;)\s?(private\s)?(set;)?\s?}/g);
+    private static readonly ClassRegex = new RegExp(/(private|internal|public|protected)\s?(static)?\sclass\s(\w*)/g);
+    private static readonly GeneralRegex = new RegExp(/(public|private|protected)\s(.*?)\(([\s\S]*?)\)/gi);
 
     constructor() {
         commands.registerCommand(this._commandIds.initializeMemberFromCtor, this.initializeMemberFromCtor, this);
@@ -134,7 +132,7 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
 
         while (lineNo < document.lineCount) {
             const textLine = document.lineAt(lineNo);
-            const match = this._readonlyRegex.exec(textLine.text);
+            const match = CodeActionProvider.ReadonlyRegex.exec(textLine.text);
 
             if (match) {
                 const foundClass = this.findClassFromLine(document, lineNo);
@@ -185,7 +183,7 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
 
         while (lineNo >= 0) {
             const line = document.lineAt(lineNo);
-            const match = this._classRegex.exec(line.text);
+            const match = CodeActionProvider.ClassRegex.exec(line.text);
 
             if (match) {
                 return {
@@ -236,7 +234,7 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
 
         if (!wordRange) return;
 
-        const matches = this._generalRegex.exec(surrounding);
+        const matches = CodeActionProvider.GeneralRegex.exec(surrounding);
 
         if (!matches) return;
 

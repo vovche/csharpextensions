@@ -9,7 +9,10 @@ import NamespaceDetector from '../namespaceDetector';
 import fileScopedNamespaceConverter from '../fileScopedNamespaceConverter';
 
 export default abstract class Template {
-    private static readonly _eolRegex = new RegExp(/\r?\n/g);
+    private static readonly ClassnameRegex = new RegExp(/\${classname}/, 'g');
+    private static readonly NamespaceRegex = new RegExp(/\${namespace}/, 'g');
+    private static readonly EolRegex = new RegExp(/\r?\n/g);
+
     private _name: string;
     private _command: string;
     private _requiredUsings: string[];
@@ -62,7 +65,7 @@ export default abstract class Template {
                 .replace(Template.NamespaceRegex, namespace)
                 .replace(Template.ClassnameRegex, filename)
                 .replace('${namespaces}', this.getUsings())
-                .replace(Template._eolRegex, eolSetting);
+                .replace(Template.EolRegex, eolSetting);
 
             const cursorPosition = this._findCursorInTemplate(text);
 
@@ -124,7 +127,4 @@ export default abstract class Template {
 
         return new vscode.Position(lineNum, charNum);
     }
-
-    private static ClassnameRegex = new RegExp(/\${classname}/, 'g');
-    private static NamespaceRegex = new RegExp(/\${namespace}/, 'g');
 }
