@@ -9,6 +9,7 @@ import NamespaceDetector from '../namespaceDetector';
 import fileScopedNamespaceConverter from '../fileScopedNamespaceConverter';
 
 export default abstract class Template {
+    private static readonly _eolRegex = new RegExp(/\r?\n/g);
     private _name: string;
     private _command: string;
     private _requiredUsings: string[];
@@ -51,6 +52,7 @@ export default abstract class Template {
         try {
             const doc = await fs.readFile(templatePath, 'utf-8');
             const namespace = await this.getNamespace(filePath);
+            const eolSetting = vscode.workspace.getConfiguration().get('files.eol', EOL);
 
             let text = doc;
 
@@ -59,7 +61,8 @@ export default abstract class Template {
             text = text
                 .replace(Template.NamespaceRegex, namespace)
                 .replace(Template.ClassnameRegex, filename)
-                .replace('${namespaces}', this.getUsings());
+                .replace('${namespaces}', this.getUsings())
+                .replace(Template._eolRegex, eolSetting);
 
             const cursorPosition = this._findCursorInTemplate(text);
 
