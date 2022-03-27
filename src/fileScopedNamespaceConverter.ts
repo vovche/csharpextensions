@@ -2,6 +2,9 @@ import CsprojReader from './project/csprojReader';
 import { workspace } from 'vscode';
 
 export class FileScopedNamespaceConverter {
+    private static readonly NamespaceRegex = new RegExp(/(?<=\${namespace})/);
+    private static readonly NamespaceBracesRegex = new RegExp(/(?<=^)({|}| {4})/, 'gm');
+
     /**
      * If the file to be created is a C# file, 
      * and the TargetFramework version of the current project is .NET 6.0+, 
@@ -13,7 +16,6 @@ export class FileScopedNamespaceConverter {
      * @param template The content of the C# template file.
      * @param filePath The path of the C# file that is being created. Used to locate the .csproj file and get the TargetFramework version.
      */
-
     public async getFileScopedNamespaceFormOfTemplateIfNecessary(template: string, filePath: string): Promise<string> {
         if (await this.shouldUseFileScopedNamespace(filePath)) {
             return this.getFileScopedNamespaceFormOfTemplate(template);
@@ -71,8 +73,8 @@ export class FileScopedNamespaceConverter {
      */
     private getFileScopedNamespaceFormOfTemplate(template: string): string {
         const result = template
-            .replace(new RegExp(/(?<=^)({|}| {4})/, 'gm'), '')
-            .replace(new RegExp(/(?<=\${namespace})/), ';');
+            .replace(FileScopedNamespaceConverter.NamespaceBracesRegex, '')
+            .replace(FileScopedNamespaceConverter.NamespaceRegex, ';');
 
         return result;
     }
