@@ -80,18 +80,20 @@ export default class CsprojReader extends ProjectReader {
      * @returns If the 'ImplicitUsings' option is set to `enable`
      */
     public async useImplicitUsings(): Promise<boolean> {
+        let propertyGroups: PropertyGroup[] | undefined;
+        let propertyGroupWithImplicitUsings: PropertyGroup | undefined;
+
         try {
-            const propertyGroups = await this.getPropertyGroups();
-            const propertyGroupWithImplicitUsings = propertyGroups?.find(p => p.ImplicitUsings);
-
-            if (!propertyGroupWithImplicitUsings?.ImplicitUsings) return false;
-
-            return propertyGroupWithImplicitUsings.ImplicitUsings[0] === 'enable';
+            propertyGroups = await this.getPropertyGroups();
+            propertyGroupWithImplicitUsings = propertyGroups?.find(p => p.ImplicitUsings);
         } catch (errParsingXml) {
             console.error('Error parsing project xml', errParsingXml);
+            return false;
         }
 
-        return false;
+        if (!propertyGroupWithImplicitUsings?.ImplicitUsings) return false;
+
+        return propertyGroupWithImplicitUsings.ImplicitUsings[0] === 'enable';
     }
 
     /**

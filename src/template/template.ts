@@ -9,7 +9,6 @@ import CsprojReader from '../project/csprojReader';
 import NamespaceDetector from '../namespaceDetector';
 import fileScopedNamespaceConverter from '../fileScopedNamespaceConverter';
 
-
 export default abstract class Template {
     private _name: string;
     private _command: string;
