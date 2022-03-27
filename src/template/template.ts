@@ -53,6 +53,10 @@ export default abstract class Template {
     }
 
     private async _useImplicitUsings(filePath: string): Promise<boolean> {
+        const skipImplicitUsings = vscode.workspace.getConfiguration().get('csharpextensions.usings.implicit', false);
+
+        if (skipImplicitUsings === false) return false;
+
         const csprojReader = await CsprojReader.createFromPath(filePath); // project.json not supported for > .net6
 
         return await csprojReader?.useImplicitUsings() === true;
@@ -62,7 +66,7 @@ export default abstract class Template {
         try {
             const doc = await fs.readFile(templatePath, 'utf-8');
             const namespace = await this.getNamespace(filePath);
-            const implicitUsings = await this._useImplicitUsings(filePath);
+            const useImplicitUsings = await this._useImplicitUsings(filePath);
             const eolSetting = vscode.workspace.getConfiguration().get('files.eol', EOL);
 
             let text = await fileScopedNamespaceConverter.getFileScopedNamespaceFormOfTemplateIfNecessary(doc, filePath);
@@ -70,9 +74,10 @@ export default abstract class Template {
             text = text
                 .replace(Template.NamespaceRegex, namespace)
                 .replace(Template.ClassnameRegex, filename)
-                .replace('${namespaces}', this._getUsings(implicitUsings))
-                .replace(Template.EolRegex, eolSetting);
+                .replace('${namespaces}', this._getUsings(useImplicitUsings))
+                .replace(Template.EolRegex, eolSetting); // EOL should always be last
 
+            // Only find cursor now, because position can be shifted in replacings
             const cursorPosition = this._findCursorInTemplate(text);
 
             text = text.replace('${cursor}', '');
@@ -115,10 +120,10 @@ export default abstract class Template {
     }
 
     private _getUsings(skipImplicit: boolean): string {
-        const includeNamespaces = vscode.workspace.getConfiguration().get('csharpextensions.includeNamespaces', true);
+        const includeUsings = vscode.workspace.getConfiguration().get('csharpextensions.usings.include', true);
         let usings = this._requiredUsings;
 
-        if (includeNamespaces) usings = usings.concat(this.getOptionalUsings());
+        if (includeUsings) usings = usings.concat(this.getOptionalUsings());
         if (skipImplicit) usings = this._removeImplicitUsings(usings);
 
         if (!usings.length) return '';

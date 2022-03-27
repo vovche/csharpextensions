@@ -88,6 +88,7 @@ export default class CsprojReader extends ProjectReader {
             propertyGroupWithImplicitUsings = propertyGroups?.find(p => p.ImplicitUsings);
         } catch (errParsingXml) {
             console.error('Error parsing project xml', errParsingXml);
+
             return false;
         }
 

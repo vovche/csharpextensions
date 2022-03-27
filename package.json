@@ -157,15 +157,20 @@
                     "default": true,
                     "description": "If true, the document will be reformatted after codeactions are used."
                 },
-                "csharpextensions.includeNamespaces": {
+                "csharpextensions.usings.include": {
                     "type": "boolean",
                     "default": true,
-                    "description": "If created classes should include default namespaces"
+                    "description": "If created classes should include default usings."
+                },
+                "csharpextensions.usings.implicit": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "If created classes should exclude implicit usings. Only applies when a project's `ImplicitUsings` has been set to `enabled`, and when `#csharpextensions.usings.include#` is set to `true`."
                 },
                 "csharpextensions.useFileScopedNamespace": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Use file scoped namespace in .NET 6.0+ projects"
+                    "description": "Use file scoped namespace in .NET 6.0+ projects."
                 }
             }
         }
