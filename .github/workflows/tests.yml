@@ -1,0 +1,36 @@
+
+name: Unit tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types:
+      - "opened"
+      - "synchronize"
+      - "reopened"
+env:
+  NODE_VERSION: '16'
+
+jobs:
+  test:
+    name: Test
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{matrix.os}}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    - run: yarn install
+    - run: xvfb-run -a yarn test
+      if: runner.os == 'Linux'
+    - run: yarn test
+      if: runner.os != 'Linux'
+  
