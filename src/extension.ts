@@ -64,7 +64,7 @@ export class Extension {
             let newFilename = await vscode.window.showInputBox({
                 ignoreFocusOut: true,
                 prompt: 'Please enter a name for the new file(s)',
-                value: `new${template.getName()}`
+                value: `New${template.getName()}`
             });
 
             if (typeof newFilename === 'undefined' || newFilename === '') {
@@ -131,24 +131,24 @@ export class Extension {
         if (!this.KnownTemplates) {
             this.KnownTemplates = new Map();
 
-            this.KnownTemplates.set('class', new CsTemplate('class', 'createClass'));
-            this.KnownTemplates.set('interface', new CsTemplate('interface', 'createInterface'));
-            this.KnownTemplates.set('enum', new CsTemplate('enum', 'createEnum'));
-            this.KnownTemplates.set('controller', new CsTemplate('controller', 'createController', [
+            this.KnownTemplates.set('class', new CsTemplate('Class', 'createClass'));
+            this.KnownTemplates.set('interface', new CsTemplate('Interface', 'createInterface'));
+            this.KnownTemplates.set('enum', new CsTemplate('Enum', 'createEnum'));
+            this.KnownTemplates.set('controller', new CsTemplate('Controller', 'createController', [
                 'System.Diagnostics',
                 'Microsoft.AspNetCore.Mvc',
                 'Microsoft.Extensions.Logging',
             ]));
-            this.KnownTemplates.set('apicontroller', new CsTemplate('apicontroller', 'createApiController', ['Microsoft.AspNetCore.Mvc']));
-            this.KnownTemplates.set('razor_page', new CshtmlTemplate('razor_page', 'createRazorPage', [
+            this.KnownTemplates.set('apicontroller', new CsTemplate('Controller', 'createApiController', ['Microsoft.AspNetCore.Mvc']));
+            this.KnownTemplates.set('razor_page', new CshtmlTemplate('RazorPage', 'createRazorPage', [
                 'Microsoft.AspNetCore.Mvc',
                 'Microsoft.AspNetCore.Mvc.RazorPages',
                 'Microsoft.Extensions.Logging',
             ]));
-            this.KnownTemplates.set('uwp_page', new XamlTemplate('uwp_page', 'createUwpPage'));
-            this.KnownTemplates.set('uwp_window', new XamlTemplate('uwp_window', 'createUwpWindow'));
-            this.KnownTemplates.set('uwp_usercontrol', new XamlTemplate('uwp_usercontrol', 'createUwpUserControl'));
-            this.KnownTemplates.set('uwp_resource', new ReswTemplate('uwp_resource', 'createUwpResourceFile'));
+            this.KnownTemplates.set('uwp_page', new XamlTemplate('UWP_Page', 'createUwpPage'));
+            this.KnownTemplates.set('uwp_window', new XamlTemplate('UWP_Window', 'createUwpWindow'));
+            this.KnownTemplates.set('uwp_usercontrol', new XamlTemplate('UWP_UserControl', 'createUwpUserControl'));
+            this.KnownTemplates.set('uwp_resource', new ReswTemplate('UWP_Resource', 'createUwpResourceFile'));
         }
 
         return this.KnownTemplates;
