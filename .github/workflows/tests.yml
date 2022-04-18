@@ -28,7 +28,10 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ env.NODE_VERSION }}
-    - run: yarn install
+    - name: Install dependencies
+      run: yarn install
+    - name: Build extension
+      run: yarn compile
     - run: xvfb-run -a yarn test
       if: runner.os == 'Linux'
     - run: yarn test

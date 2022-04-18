@@ -44,7 +44,7 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
         addInitalizeFromCtor(MemberGenerationType.ReadonlyProperty);
         addInitalizeFromCtor(MemberGenerationType.Property);
 
-        const ctorPAction = this.getCtorpAction(document, range, context, token);
+        const ctorPAction = this.getCtorpAction(document);
 
         if (ctorPAction) codeActions.push(ctorPAction);
 
@@ -117,7 +117,7 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
         }
     }
 
-    private getCtorpAction(document: TextDocument, range: Range, context: CodeActionContext, token: CancellationToken): CodeAction | undefined {
+    private getCtorpAction(document: TextDocument): CodeAction | undefined {
         const editor = window.activeTextEditor;
 
         if (!editor) return;

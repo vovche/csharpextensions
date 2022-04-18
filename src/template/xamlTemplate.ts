@@ -33,7 +33,7 @@ export default class XamlTemplate extends Template {
         const csTemplatePath = this._getTemplatePath(templatesPath, `${this.getName()}.cs`);
         const xamlFilePath = `${pathWithoutExtension}.xaml`;
         const csFilePath = `${pathWithoutExtension}.xaml.cs`;
-       
+
         await this._createFile(csTemplatePath, csFilePath, filename);
         await this._createFile(xamlTemplatePath, xamlFilePath, filename);
     }
