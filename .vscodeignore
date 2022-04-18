@@ -6,6 +6,7 @@ src/**
 **/*.map
 .gitignore
 .yarnrc
+.github/**
 vsc-extension-quickstart.md
 *.vsix
 **/tsconfig.json
