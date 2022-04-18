@@ -51,11 +51,23 @@ export default abstract class Template {
         return await namespaceDetector.getNamespace();
     }
 
+    private _getEolSetting(): string {
+        const eolSetting = vscode.workspace.getConfiguration().get('files.eol', EOL);
+
+        switch (eolSetting) {
+            case '\n':
+            case '\r\n':
+                return eolSetting;
+            case 'auto':
+            default:
+                return EOL;
+        }
+    }
+
     protected async _createFile(templatePath: string, filePath: string, filename: string): Promise<void> {
         try {
             const doc = await fs.readFile(templatePath, 'utf-8');
             const namespace = await this.getNamespace(filePath);
-            const eolSetting = vscode.workspace.getConfiguration().get('files.eol', EOL);
 
             let text = doc;
 
@@ -65,7 +77,7 @@ export default abstract class Template {
                 .replace(Template.NamespaceRegex, namespace)
                 .replace(Template.ClassnameRegex, filename)
                 .replace('${namespaces}', this.getUsings())
-                .replace(Template.EolRegex, eolSetting);
+                .replace(Template.EolRegex, this._getEolSetting());
 
             const cursorPosition = this._findCursorInTemplate(text);
 
