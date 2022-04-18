@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.6.1] - 2022-04-18
+### Fixed
+- License file capitalized, so it is included in publishing
+- EOL settings from vscode applied
+- Template formatting
+- Prefilled names PascalCased now - Fixed by [doggy8088](https://github.com/doggy8088)
+
 ## [1.6.0] - 2022-01-24
 ### Added
 - Option to enable file-scoped namespace with .NET 6.0+ projects - Added by [JasonWei512](https://github.com/JasonWei512)
