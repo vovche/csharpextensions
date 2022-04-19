@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## EOL setting fixed if set to `auto` - 2022-04-19
+## [1.6.2] - 2022-04-19
 
-Fixed
+### Fixed
 
-1. If vscode EOL setting is set to 'auto', revert to default OS setting
+- If vscode EOL setting is set to 'auto', revert to default OS setting
 
 ## [1.6.1] - 2022-04-18
 
