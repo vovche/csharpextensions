@@ -23,8 +23,8 @@ export default class CshtmlTemplate extends Template {
     }
 
     public async create(templatesPath: string, pathWithoutExtension: string, filename: string): Promise<void> {
-        const cshtmlTemplatePath = this._getTemplatePath(templatesPath, this.getName());
-        const csTemplatePath = this._getTemplatePath(templatesPath, `${this.getName()}.cs`);
+        const cshtmlTemplatePath = this._getTemplatePath(templatesPath, this._getFileName());
+        const csTemplatePath = this._getTemplatePath(templatesPath, `${this._getFileName()}.cs`);
         const cshtmlFilePath = `${pathWithoutExtension}.cshtml`;
         const csFilePath = `${pathWithoutExtension}.cshtml.cs`;
 

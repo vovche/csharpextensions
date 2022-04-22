@@ -5,6 +5,7 @@ import { EOL } from 'os';
 import * as path from 'path';
 import { sortBy, uniq } from 'lodash';
 
+import { ExtensionError } from '../util';
 import NamespaceDetector from '../namespaceDetector';
 import fileScopedNamespaceConverter from '../fileScopedNamespaceConverter';
 
@@ -45,6 +46,11 @@ export default abstract class Template {
         return existingFiles;
     }
 
+    protected _getFileName(): string {
+        // Template file names are always in lowercase, but names can have uppercase characters
+        return this._name.toLowerCase();
+    }
+
     private async getNamespace(pathWithoutExtension: string): Promise<string> {
         const namespaceDetector = new NamespaceDetector(pathWithoutExtension);
 
@@ -65,11 +71,19 @@ export default abstract class Template {
     }
 
     protected async _createFile(templatePath: string, filePath: string, filename: string): Promise<void> {
-        try {
-            const doc = await fs.readFile(templatePath, 'utf-8');
-            const namespace = await this.getNamespace(filePath);
+        let doc;
 
-            let text = doc;
+        try {
+            doc = await fs.readFile(templatePath, 'utf-8');
+        } catch (errReading) {
+            throw new ExtensionError(`Could not read template file from '${templatePath}'`, errReading);
+        }
+
+        let text = doc;
+        let cursorPosition: vscode.Position | null;
+
+        try {
+            const namespace = await this.getNamespace(filePath);
 
             text = await fileScopedNamespaceConverter.getFileScopedNamespaceFormOfTemplateIfNecessary(text, filePath);
 
@@ -79,12 +93,20 @@ export default abstract class Template {
                 .replace('${namespaces}', this.getUsings())
                 .replace(Template.EolRegex, this._getEolSetting());
 
-            const cursorPosition = this._findCursorInTemplate(text);
+            cursorPosition = this._findCursorInTemplate(text);
 
             text = text.replace('${cursor}', '');
+        } catch (errBuildingText) {
+            throw new ExtensionError('Error trying to build text', errBuildingText);
+        }
 
+        try {
             await fs.writeFile(filePath, text);
+        } catch (errWritingFile) {
+            throw new ExtensionError(`Error trying to write to '${filePath}'`, errWritingFile);
+        }
 
+        try {
             const openedDoc = await vscode.workspace.openTextDocument(filePath);
             const editor = await vscode.window.showTextDocument(openedDoc);
 
@@ -93,12 +115,8 @@ export default abstract class Template {
 
                 editor.selection = newSelection;
             }
-        } catch (errTryingToCreate) {
-            const errorMessage = `Error trying to create file '${filePath}' from template '${templatePath}'`;
-
-            console.error(errorMessage, errTryingToCreate);
-
-            vscode.window.showErrorMessage(errorMessage);
+        } catch (errOpeningFile) {
+            throw new ExtensionError(`Error trying to open from '${filePath}'`, errOpeningFile);
         }
     }
 

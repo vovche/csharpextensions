@@ -9,6 +9,7 @@ import CshtmlTemplate from './template/cshtmlTemplate';
 import ReswTemplate from './template/reswTemplate';
 import XamlTemplate from './template/xamlTemplate';
 import CodeActionProvider from './codeActionProvider';
+import { showAndLogErrorMessage } from './util';
 
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -64,37 +65,37 @@ export class Extension {
             return;
         }
 
+        let newFilename = await vscode.window.showInputBox({
+            ignoreFocusOut: true,
+            prompt: 'Please enter a name for the new file(s)',
+            value: `New${template.getName()}`
+        });
+
+        if (typeof newFilename === 'undefined' || newFilename === '') {
+            console.info('Filename request: User did not provide any input');
+
+            return;
+        }
+
+        if (newFilename.endsWith('.cs')) newFilename = newFilename.substring(0, newFilename.length - 3);
+
+        const pathWithoutExtension = `${incomingPath}${path.sep}${newFilename}`;
+        const existingFiles = await template.getExistingFiles(pathWithoutExtension);
+
+        if (existingFiles.length) {
+            vscode.window.showErrorMessage(`File(s) already exists: ${EOL}${existingFiles.join(EOL)}`);
+
+            return;
+        }
+
+        const templatesPath = path.join(extension.extensionPath, Extension.TemplatesPath);
+
         try {
-            let newFilename = await vscode.window.showInputBox({
-                ignoreFocusOut: true,
-                prompt: 'Please enter a name for the new file(s)',
-                value: `New${template.getName()}`
-            });
-
-            if (typeof newFilename === 'undefined' || newFilename === '') {
-                console.info('Filename request: User did not provide any input');
-
-                return;
-            }
-
-            if (newFilename.endsWith('.cs')) newFilename = newFilename.substring(0, newFilename.length - 3);
-
-            const pathWithoutExtension = `${incomingPath}${path.sep}${newFilename}`;
-            const existingFiles = await template.getExistingFiles(pathWithoutExtension);
-
-            if (existingFiles.length) {
-                vscode.window.showErrorMessage(`File(s) already exists: ${EOL}${existingFiles.join(EOL)}`);
-
-                return;
-            }
-
-            const templatesPath = path.join(extension.extensionPath, Extension.TemplatesPath);
-
             await template.create(templatesPath, pathWithoutExtension, newFilename);
-        } catch (errOnInput) {
-            console.error('Error on input', errOnInput);
-
-            vscode.window.showErrorMessage('Error on input. See extension log for more info');
+        } catch (errCreating) {
+            const message = `Error trying to create new ${template.getName()} at ${pathWithoutExtension}`;
+            
+            showAndLogErrorMessage(message, errCreating);
         }
     }
 

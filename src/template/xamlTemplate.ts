@@ -29,8 +29,8 @@ export default class XamlTemplate extends Template {
     }
 
     public async create(templatesPath: string, pathWithoutExtension: string, filename: string): Promise<void> {
-        const xamlTemplatePath = this._getTemplatePath(templatesPath, this.getName());
-        const csTemplatePath = this._getTemplatePath(templatesPath, `${this.getName()}.cs`);
+        const xamlTemplatePath = this._getTemplatePath(templatesPath, this._getFileName());
+        const csTemplatePath = this._getTemplatePath(templatesPath, `${this._getFileName()}.cs`);
         const xamlFilePath = `${pathWithoutExtension}.xaml`;
         const csFilePath = `${pathWithoutExtension}.xaml.cs`;
 
