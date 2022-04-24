@@ -14,27 +14,28 @@ export default class NamespaceDetector {
     }
 
     public async getNamespace(): Promise<string> {
-        let fullNamespace = await this.fromCsproj();
-
-        if (fullNamespace) return fullNamespace;
-
-        fullNamespace = await this.fromProjectJson();
-
-        if (fullNamespace) return fullNamespace;
-
-        return await this.fromFilepath();
-    }
-
-    private async fromCsproj(): Promise<string | undefined> {
+        const projectReaders = new Array<ProjectReader>();
         const csprojReader = await CsprojReader.createFromPath(this.filePath);
 
-        return await this.getRootNamespace(csprojReader);
-    }
+        if (csprojReader) {
+            projectReaders.push(csprojReader);
 
-    private async fromProjectJson(): Promise<string | undefined> {
+            const fullNamespace = await this.getRootNamespace(csprojReader);
+
+            if (fullNamespace) return fullNamespace;
+        }
+
         const projectJsonReader = await ProjectJsonReader.createFromPath(this.filePath);
 
-        return await this.getRootNamespace(projectJsonReader);
+        if (projectJsonReader) {
+            projectReaders.push(projectJsonReader);
+
+            const fullNamespace = await this.getRootNamespace(projectJsonReader);
+
+            if (fullNamespace) return fullNamespace;
+        }
+
+        return await this.fromFilepath(projectReaders);
     }
 
     private async getRootNamespace(projectReader: ProjectReader | undefined): Promise<string | undefined> {
@@ -47,20 +48,24 @@ export default class NamespaceDetector {
         return this.calculateFullNamespace(rootNamespace, path.dirname(projectReader.getFilePath()));
     }
 
-    private async getRootPath(): Promise<string> {
-        const projectPath = await ProjectReader.findProjectPath(this.filePath);
+    private async getRootPath(projectReaders: Array<ProjectReader>): Promise<string> {
+        for (const projectReader of projectReaders) {
+            if (projectReader) {
+                const projectPath = projectReader.getFilePath();
 
-        if (projectPath) {
-            const projectPathSplit = projectPath.split(path.sep);
+                if (projectPath) {
+                    const projectPathSplit = projectPath.split(path.sep);
 
-            return projectPathSplit.slice(0, projectPathSplit.length - 2).join(path.sep);
+                    return projectPathSplit.slice(0, projectPathSplit.length - 2).join(path.sep);
+                }
+            }
         }
 
         return workspace.workspaceFolders && workspace.workspaceFolders.length ? workspace.workspaceFolders[0].uri.fsPath : '';
     }
 
-    private async fromFilepath(): Promise<string> {
-        const rootPath = await this.getRootPath();
+    private async fromFilepath(projectReaders: Array<ProjectReader>): Promise<string> {
+        const rootPath = await this.getRootPath(projectReaders);
         const namespaceWithLeadingDot = this.calculateFullNamespace('', rootPath);
 
         return namespaceWithLeadingDot.slice(1);
@@ -69,7 +74,7 @@ export default class NamespaceDetector {
     private calculateFullNamespace(rootNamespace: string, rootDirectory: string): string {
         const filePathSegments: string[] = path.dirname(this.filePath).split(path.sep);
         const rootDirSegments: string[] = rootDirectory.split(path.sep);
-        
+
         let fullNamespace = rootNamespace;
 
         // Remove rootDirSegments from filePathSegments
