@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## Template file casing - 2022-04-24
+
+## What's Changed
+
+- fix: Razor template name mismatch by @KreativJos in https://github.com/KreativJos/csharpextensions/pull/89
+- fix: Template file casing by @KreativJos in https://github.com/KreativJos/csharpextensions/pull/85
+- fix: Detecting namespace from path by @KreativJos in https://github.com/KreativJos/csharpextensions/pull/92
+
+**Full Changelog**: https://github.com/KreativJos/csharpextensions/compare/v1.6.2...v1.6.3
+
 ## [1.6.2] - 2022-04-19
 
 ### Fixed
