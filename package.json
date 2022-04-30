@@ -60,6 +60,10 @@
                 "title": "Enum"
             },
             {
+                "command": "csharpextensions.createStruct",
+                "title": "Struct"
+            },
+            {
                 "command": "csharpextensions.createController",
                 "title": "Controller"
             },
@@ -101,6 +105,10 @@
                 {
                     "group": "basics@2",
                     "command": "csharpextensions.createEnum"
+                },
+                {
+                    "group": "basics@3",
+                    "command": "csharpextensions.createStruct"
                 },
                 {
                     "group": "mvc@0",

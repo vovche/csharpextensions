@@ -141,6 +141,7 @@ export class Extension {
             this.KnownTemplates.set('class', new CsTemplate('Class', 'createClass'));
             this.KnownTemplates.set('interface', new CsTemplate('Interface', 'createInterface'));
             this.KnownTemplates.set('enum', new CsTemplate('Enum', 'createEnum'));
+            this.KnownTemplates.set('struct', new CsTemplate('Struct', 'createStruct'));
             this.KnownTemplates.set('controller', new CsTemplate('Controller', 'createController', [
                 'System.Diagnostics',
                 'Microsoft.AspNetCore.Mvc',
