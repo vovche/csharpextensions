@@ -90,53 +90,77 @@
             {
                 "command": "csharpextensions.createUwpResourceFile",
                 "title": "UWP Resource File"
+            },
+            {
+                "command": "csharpextensions.createXUnitTest",
+                "title": "XUnit Test"
+            },
+            {
+                "command": "csharpextensions.createNUnitTest",
+                "title": "NUnit Test"
+            },
+            {
+                "command": "csharpextensions.createMSTest",
+                "title": "MSTest"
             }
         ],
         "menus": {
             "csharpextensions.new": [
                 {
-                    "group": "basics@0",
+                    "group": "00_basics@0",
                     "command": "csharpextensions.createClass"
                 },
                 {
-                    "group": "basics@1",
+                    "group": "00_basics@1",
                     "command": "csharpextensions.createInterface"
                 },
                 {
-                    "group": "basics@2",
+                    "group": "00_basics@2",
                     "command": "csharpextensions.createEnum"
                 },
                 {
-                    "group": "basics@3",
+                    "group": "00_basics@3",
                     "command": "csharpextensions.createStruct"
                 },
                 {
-                    "group": "mvc@0",
+                    "group": "10_mvc@0",
                     "command": "csharpextensions.createController"
                 },
                 {
-                    "group": "mvc@1",
+                    "group": "10_mvc@1",
                     "command": "csharpextensions.createApiController"
                 },
                 {
-                    "group": "mvc@2",
+                    "group": "10_mvc@2",
                     "command": "csharpextensions.createRazorPage"
                 },
                 {
-                    "group": "uwp@0",
+                    "group": "20_uwp@0",
                     "command": "csharpextensions.createUwpPage"
                 },
                 {
-                    "group": "uwp@1",
+                    "group": "20_uwp@1",
                     "command": "csharpextensions.createUwpWindow"
                 },
                 {
-                    "group": "uwp@2",
+                    "group": "20_uwp@2",
                     "command": "csharpextensions.createUwpUserControl"
                 },
                 {
-                    "group": "uwp@3",
+                    "group": "20_uwp@3",
                     "command": "csharpextensions.createUwpResourceFile"
+                },
+                {
+                    "group": "30_test@0",
+                    "command": "csharpextensions.createXUnitTest"
+                },
+                {
+                    "group": "30_test@1",
+                    "command": "csharpextensions.createNUnitTest"
+                },
+                {
+                    "group": "30_test@2",
+                    "command": "csharpextensions.createMSTest"
                 }
             ],
             "explorer/context": [
