@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.0] - 2022-05-02
+
+### Added
+
+- Unit test templates (XUnit, NUnit, MSTest)
+- Struct template
+
 ## [1.6.3] - 2022-04-24
 
 ### Fixed
