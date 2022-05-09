@@ -147,7 +147,7 @@ export class Extension {
                 'Microsoft.AspNetCore.Mvc',
                 'Microsoft.Extensions.Logging',
             ]));
-            this.KnownTemplates.set('apicontroller', new CsTemplate('Controller', 'createApiController', ['Microsoft.AspNetCore.Mvc']));
+            this.KnownTemplates.set('apicontroller', new CsTemplate('ApiController', 'createApiController', ['Microsoft.AspNetCore.Mvc']));
             this.KnownTemplates.set('razor_page', new CshtmlTemplate('Razor_Page', 'createRazorPage', [
                 'Microsoft.AspNetCore.Mvc',
                 'Microsoft.AspNetCore.Mvc.RazorPages',
