@@ -1,9 +1,9 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import * as fs from 'fs';
-import CsprojReader from '../../src/project/csprojReader';
+import CsprojReader from '../../../src/project/csprojReader';
 
-const fixture_path= path.resolve(__dirname, '../suite/');
+const fixture_path= path.resolve(__dirname, '../../suite/');
 interface Fixture {
     filename: string,
     csproj : string,
@@ -177,7 +177,7 @@ suite('CsprojReader', () => {
                 fs.writeFileSync(filePath, csproj.replace('%PLACE_HOLDER%', targetFramework));
                 const detector = new CsprojReader(filePath);
                 const actual = await detector.getTargetFramework();
-    
+
                 fs.unlinkSync(filePath);
                 assert.strictEqual(actual, expected?.replace('%PLACE_HOLDER%', targetFramework));
             });

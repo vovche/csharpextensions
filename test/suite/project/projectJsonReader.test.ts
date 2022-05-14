@@ -1,9 +1,9 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import * as fs from 'fs';
-import ProjectJsonReader from '../../src/project/projectJsonReader';
+import ProjectJsonReader from '../../../src/project/projectJsonReader';
 
-const fixture_path= path.resolve(__dirname, '../suite/');
+const fixture_path= path.resolve(__dirname, '../../suite/');
 interface Fixture {
     filename: string,
     json : string,
