@@ -181,6 +181,21 @@ suite('CsprojReader', () => {
                 fs.unlinkSync(filePath);
                 assert.strictEqual(actual, expected?.replace('%PLACE_HOLDER%', targetFramework));
             });
+            test(`isTargetFrameworkHigherThanOrEqualToDotNet6 ${filename} with content ${csproj} should return expected result ${!expected ? 'undefined' : targetFramework}`, async () => {
+                const filePath = `${fixture_path}/${index}-${filename}`;
+                fs.writeFileSync(filePath, csproj.replace('%PLACE_HOLDER%', targetFramework));
+                const detector = new CsprojReader(filePath);
+                let framework =  undefined;
+                if (expected) {
+                    const versionMatch = targetFramework.match(/(?<=net)\d+(\.\d+)*/i);
+                    framework = !versionMatch?.length || Number.isNaN(versionMatch[0]) ? false : (Number.parseFloat(versionMatch[0]) >= 6);
+                }
+
+                const actual = await detector.isTargetFrameworkHigherThanOrEqualToDotNet6();
+
+                fs.unlinkSync(filePath);
+                assert.strictEqual(actual, framework);
+            });
         });
     });
 
@@ -190,5 +205,35 @@ suite('CsprojReader', () => {
         const actual = detector.getFilePath();
 
         assert.strictEqual(actual, filePath);
+    });
+
+    targetFrameworkFixtures.forEach(({ filename, csproj, expected }) => {
+        validTargetFramework.forEach((targetFramework, index) => {
+            test('createFromPath returns valid CsprojReader instance', async () => {
+                const filePath = path.resolve(fixture_path, `${index}-${filename}`);
+                fs.writeFileSync(filePath, csproj.replace('%PLACE_HOLDER%', targetFramework));
+                let framework =  undefined;
+                if (expected) {
+                    const versionMatch = targetFramework.match(/(?<=net)\d+(\.\d+)*/i);
+                    framework = !versionMatch?.length || Number.isNaN(versionMatch[0]) ? false : (Number.parseFloat(versionMatch[0]) >= 6);
+                }
+
+                const result = await CsprojReader.createFromPath(filePath);
+
+                fs.unlinkSync(filePath);
+                assert.notStrictEqual(undefined, result);
+                assert.strictEqual(result?.getFilePath(), filePath);
+                const actual = await result?.getTargetFramework();
+                assert.strictEqual(actual, expected?.replace('%PLACE_HOLDER%', targetFramework));
+                const actualTest = await result?.isTargetFrameworkHigherThanOrEqualToDotNet6();
+                assert.strictEqual(actualTest, framework);
+            });
+        });
+    });
+
+    test('createFromPath when not existing csprj, returns undefined', async () => {
+        const filePath = `${fixture_path}/not-existing-csproj`;
+        const result = await CsprojReader.createFromPath(filePath);
+        assert.strictEqual(undefined, result);
     });
 });
