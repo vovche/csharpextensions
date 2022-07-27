@@ -15,6 +15,7 @@ import {
     CodeActionProvider as VSCodeCodeActionProvider
 } from 'vscode';
 import * as os from 'os';
+import { formatDocument } from './util';  
 
 export default class CodeActionProvider implements VSCodeCodeActionProvider {
     private _commandIds = {
@@ -90,30 +91,18 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
 
         edits.push(ctorEdit);
 
-        await this.formatDocument(args.document.uri, edit, edits);
+        await this.applyEditsAndFormat(args.document.uri, edit, edits);
     }
 
-    private async formatDocument(documentUri: Uri, edit: WorkspaceEdit, edits: Array<TextEdit>) {
-        edit.set(documentUri, edits);
-
-        const reFormatAfterChange = workspace.getConfiguration().get('csharpextensions.reFormatAfterChange', true);
+    private async applyEditsAndFormat(documentUri: Uri, edit: WorkspaceEdit, edits: Array<TextEdit>) {
+        edit.set(documentUri, edits);        
 
         await workspace.applyEdit(edit);
 
-        if (reFormatAfterChange) {
-            try {
-                const formattingEdits = await commands.executeCommand<TextEdit[]>('executeFormatDocumentProvider', documentUri);
-
-                if (formattingEdits !== undefined) {
-                    const formatEdit = new WorkspaceEdit();
-
-                    formatEdit.set(documentUri, formattingEdits);
-
-                    workspace.applyEdit(formatEdit);
-                }
-            } catch (err) {
-                console.error('Error trying to format document - ', err);
-            }
+        try {
+            await formatDocument(documentUri);
+        } catch (err) {
+            console.error('Error trying to format document - ', err);
         }
     }
 
@@ -218,7 +207,7 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
         if (args.document.getText().indexOf(args.memberGeneration.assignment.trim()) === -1)
             edits.push(memberInitEdit);
 
-        await this.formatDocument(args.document.uri, edit, edits);
+        await this.applyEditsAndFormat(args.document.uri, edit, edits);
     }
 
     private getInitializeFromCtorAction(document: TextDocument, range: Range, context: CodeActionContext, token: CancellationToken, memberGenerationType: MemberGenerationType): CodeAction | undefined {

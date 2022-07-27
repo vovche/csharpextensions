@@ -5,7 +5,7 @@ import { EOL } from 'os';
 import * as path from 'path';
 import { sortBy, uniq } from 'lodash';
 
-import { ExtensionError } from '../util';
+import { formatDocument, ExtensionError } from '../util';
 import NamespaceDetector from '../namespaceDetector';
 import fileScopedNamespaceConverter from '../fileScopedNamespaceConverter';
 
@@ -13,6 +13,7 @@ export default abstract class Template {
     private static readonly ClassnameRegex = new RegExp(/\${classname}/, 'g');
     private static readonly NamespaceRegex = new RegExp(/\${namespace}/, 'g');
     private static readonly EolRegex = new RegExp(/\r?\n/g);
+    private static readonly CsharpLanguageId = 'csharp';
 
     private _name: string;
     private _command: string;
@@ -110,6 +111,23 @@ export default abstract class Template {
             const openedDoc = await vscode.workspace.openTextDocument(filePath);
             const editor = await vscode.window.showTextDocument(openedDoc);
 
+            const languages = await vscode.languages.getLanguages();
+
+            if (languages.includes(Template.CsharpLanguageId)) {
+                await vscode.languages.setTextDocumentLanguage(
+                    openedDoc,
+                    Template.CsharpLanguageId
+                );
+            }
+
+            try {
+                await formatDocument(openedDoc.uri);
+            } catch (err) {
+                throw new ExtensionError(
+                    'Error trying to format document',
+                    err
+                );
+            }
             if (cursorPosition) {
                 const newSelection = new vscode.Selection(cursorPosition, cursorPosition);
 
