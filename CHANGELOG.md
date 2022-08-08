@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.1] - 2022-08-09
+
+### Fixed
+
+- ApiController now generates api controller again - Fixed by [vovche](https://github.com/vovche)
+
 ## [1.7.0] - 2022-05-02
 
 ### Added

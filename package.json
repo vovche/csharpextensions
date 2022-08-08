@@ -4,7 +4,7 @@
     "description": "C# IDE Extensions for VSCode",
     "author": "KreativJos",
     "license": "MIT",
-    "version": "1.7.0",
+    "version": "1.7.1",
     "publisher": "kreativ-software",
     "engines": {
         "vscode": "^1.56.0"
@@ -237,5 +237,11 @@
         "find-up-glob": "^1.0.0",
         "lodash": "^4.7.0",
         "xml2js": "^0.4.23"
+    },
+    "__metadata": {
+        "id": "80c8f9ff-3535-4b4a-b3db-e88f5752bb18",
+        "publisherDisplayName": "JosKreativ",
+        "publisherId": "4905789e-0ee4-4159-9429-069d1edbd4f4",
+        "isPreReleaseVersion": false
     }
 }
