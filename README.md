@@ -3,6 +3,9 @@
 # C# Extensions
 
 Welcome to C# Extensions.  This VSCode extension provides extensions to the IDE that will hopefully speed up your development workflow.
+It can currently be found at:
+- [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=kreativ-software.csharpextensions)
+- [Open VSX](https://open-vsx.org/extension/jsw/csharpextensions).
 
 ## Features
 
