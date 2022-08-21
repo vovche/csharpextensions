@@ -9,7 +9,7 @@ import CshtmlTemplate from './template/cshtmlTemplate';
 import ReswTemplate from './template/reswTemplate';
 import XamlTemplate from './template/xamlTemplate';
 import CodeActionProvider from './codeActionProvider';
-import { showAndLogErrorMessage } from './util';
+import { log, showAndLogErrorMessage } from './util';
 
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -72,7 +72,7 @@ export class Extension {
         });
 
         if (typeof newFilename === 'undefined' || newFilename === '') {
-            console.info('Filename request: User did not provide any input');
+            log('Filename request: User did not provide any input');
 
             return;
         }
@@ -94,7 +94,7 @@ export class Extension {
             await template.create(templatesPath, pathWithoutExtension, newFilename);
         } catch (errCreating) {
             const message = `Error trying to create new ${template.getName()} at ${pathWithoutExtension}`;
-            
+
             showAndLogErrorMessage(message, errCreating);
         }
     }

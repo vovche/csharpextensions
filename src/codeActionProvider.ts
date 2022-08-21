@@ -15,6 +15,7 @@ import {
     CodeActionProvider as VSCodeCodeActionProvider
 } from 'vscode';
 import * as os from 'os';
+import { log } from './util';
 
 export default class CodeActionProvider implements VSCodeCodeActionProvider {
     private _commandIds = {
@@ -112,7 +113,7 @@ export default class CodeActionProvider implements VSCodeCodeActionProvider {
                     workspace.applyEdit(formatEdit);
                 }
             } catch (err) {
-                console.error('Error trying to format document - ', err);
+                log('Error trying to format document - ', err);
             }
         }
     }

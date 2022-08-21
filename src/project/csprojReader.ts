@@ -1,5 +1,6 @@
 import { Uri, workspace } from 'vscode';
 import { Parser } from 'xml2js';
+import { log } from '../util';
 
 import { Csproj, PropertyGroup } from './csproj';
 import ProjectReader from './projectReader';
@@ -31,7 +32,7 @@ export default class CsprojReader extends ProjectReader {
 
             return propertyGroupWithRootNamespace.RootNamespace[0];
         } catch (errParsingXml) {
-            console.error('Error parsing project xml', errParsingXml);
+            log('Error parsing project xml', errParsingXml);
         }
 
         return;
@@ -51,7 +52,7 @@ export default class CsprojReader extends ProjectReader {
 
             return propertyGroupWithTargetFramework.TargetFramework[0];
         } catch (errParsingXml) {
-            console.error('Error parsing project xml', errParsingXml);
+            log('Error parsing project xml', errParsingXml);
         }
 
         return;
