@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.2] - 2022-09-09
+
+### Fixed
+
+- XUnit using namespace corrected
+
 ## [1.7.1] - 2022-08-09
 
 ### Fixed
