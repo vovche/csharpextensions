@@ -153,7 +153,7 @@ export class Extension {
                 'Microsoft.AspNetCore.Mvc.RazorPages',
                 'Microsoft.Extensions.Logging',
             ]));
-            this.KnownTemplates.set('xunit', new CsTemplate('XUnit', 'createXUnitTest', ['XUnit']));
+            this.KnownTemplates.set('xunit', new CsTemplate('XUnit', 'createXUnitTest', ['Xunit']));
             this.KnownTemplates.set('nunit', new CsTemplate('NUnit', 'createNUnitTest', ['NUnit.Framework']));
             this.KnownTemplates.set('mstest', new CsTemplate('MSTest', 'createMSTest', ['Microsoft.VisualStudio.TestTools.UnitTesting']));
             this.KnownTemplates.set('uwp_page', new XamlTemplate('UWP_Page', 'createUwpPage'));
